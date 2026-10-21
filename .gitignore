@@ -1,0 +1,45 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.Spotlight-V100
+.Trashes
+
+# Build Artifacts
+build/
+dist/
+out/
+bin/
+obj/
+*.dmg
+*.iso
+*.app
+*.apk
+*.aab
+*.exe
+
+# Node / Electron
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+
+# Android
+.gradle/
+build/
+android/app/build/
+android/.gradle/
+android/local.properties
+*.iml
+.idea/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# User Collections & Temp data
+collection.json
+*.log
+/tmp/

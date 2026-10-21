@@ -1,0 +1,80 @@
+{
+  "name": "macamp",
+  "version": "1.0.0",
+  "description": "High-Fidelity Winamp-Inspired Retro Music Player for macOS, Windows, and Android",
+  "main": "electron/main.js",
+  "homepage": "https://ToolNPlay.com",
+  "author": {
+    "name": "Pardeep Kumar & Harsh Suman",
+    "url": "https://ToolNPlay.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/toolnplay/macamp.git"
+  },
+  "keywords": [
+    "music-player",
+    "winamp",
+    "audio-player",
+    "equalizer",
+    "visualizer",
+    "retro",
+    "macos",
+    "windows",
+    "android",
+    "dmg",
+    "exe",
+    "apk"
+  ],
+  "scripts": {
+    "start": "electron electron/main.js",
+    "build:mac": "./scripts/build.sh && ./scripts/create-dmg.sh",
+    "build:win": "electron-builder --win --x64",
+    "build:win:portable": "electron-builder --win portable --x64",
+    "build:android": "./scripts/build-apk.sh",
+    "build:all": "npm run build:mac && npm run build:win && npm run build:android"
+  },
+  "build": {
+    "appId": "com.toolnplay.macamp",
+    "productName": "MacAmp",
+    "copyright": "Copyright © 2026 ToolNPlay.com (Pardeep Kumar & Harsh Suman)",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "electron/**/*",
+      "src/web/**/*",
+      "assets/icon.png"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        },
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "assets/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "MacAmp"
+    },
+    "mac": {
+      "category": "public.app-category.music",
+      "icon": "assets/AppIcon.icns",
+      "target": ["dmg"]
+    }
+  },
+  "devDependencies": {
+    "electron": "^29.1.5",
+    "electron-builder": "^24.13.3"
+  }
+}

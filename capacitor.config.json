@@ -1,0 +1,12 @@
+{
+  "appId": "com.toolnplay.macamp",
+  "appName": "MacAmp",
+  "webDir": "src/web",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": true
+  }
+}

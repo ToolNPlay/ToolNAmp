@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="winamp-classic">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>MacAmp - Music Player</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app" class="app-container">
+
+    <!-- TOP HEADER / MAC TITLEBAR -->
+    <header class="app-header" id="appHeader">
+      <!-- Native macOS Traffic Light Spacer (keeps title clear of standard Red/Yellow/Green buttons) -->
+      <div class="native-traffic-spacer" aria-hidden="true"></div>
+
+      <div class="titlebar-center" id="titlebarCenter">
+        <span class="app-logo">⚡ MACAMP</span>
+        <span class="app-subtitle">HIGH FIDELITY</span>
+        <span class="app-credits-pill">Developed by <b>ToolNPlay.com</b> • Authors: <b>Pardeep Kumar & Harsh Suman</b></span>
+      </div>
+
+      <div class="header-actions">
+        <!-- Skin / Theme selector -->
+        <select id="themeSelector" class="retro-select" title="Switch Theme Skin (25 Themes)">
+          <optgroup label="🪔 Festivals & Celebrations">
+            <option value="festival-diwali">🪔 Diwali (Festival of Lights)</option>
+            <option value="festival-newyear">🎆 New Year 2026 Celebration</option>
+            <option value="festival-christmas">🎄 Christmas Evergreen & Berry</option>
+            <option value="festival-holi">🎨 Holi (Gulal & Pichkari)</option>
+            <option value="festival-dussehra">🏹 Dussehra (Vijayadashami)</option>
+            <option value="festival-ramnavami">🕉️ Ram Navami (Kesariya Gold)</option>
+            <option value="festival-janmashtami">🦚 Janmashtami (Krishna Azure)</option>
+            <option value="festival-shivratri">🔱 Maha Shivratri (Cosmic Void)</option>
+            <option value="festival-halloween">🎃 Halloween (Jack-o-Lantern)</option>
+          </optgroup>
+          <optgroup label="⚡ Retro & Iconic Winamp">
+            <option value="winamp-classic" selected>Winamp Classic (1998)</option>
+            <option value="platinum-mac">Mac OS System 7 (Platinum)</option>
+            <option value="matrix">The Matrix (Digital Rain)</option>
+            <option value="gameboy">Nintendo Game Boy (1989)</option>
+            <option value="amber-crt">Amber CRT (Phosphor 80s)</option>
+            <option value="vintage-woodgrain">70s Vintage Hi-Fi Woodgrain</option>
+          </optgroup>
+          <optgroup label="🎨 Modern & Audiophile">
+            <option value="mac-dark">Modern Mac Glass (Dark)</option>
+            <option value="cyberpunk">Cyberpunk 2077 Night City</option>
+            <option value="vaporwave">Vaporwave Synth Aesthetics</option>
+            <option value="synthwave">Outrun Synthwave Sunset</option>
+            <option value="dracula">Dracula Dark Pro</option>
+            <option value="nord">Nordic Arctic Frost</option>
+            <option value="tokyo-night">Tokyo Night Cyberpunk</option>
+            <option value="midnight-oled">Pure Pitch OLED Black</option>
+            <option value="emerald-luxe">Emerald Luxe Audiophile</option>
+            <option value="solarized-dark">Solarized Dark Precision</option>
+          </optgroup>
+        </select>
+
+        <button id="btnAlwaysOnTop" class="icon-toggle-btn" title="Toggle Always on Top (Float)">📌</button>
+        <button id="btnWindowShade" class="icon-toggle-btn" title="Window Shade / Mini Player Mode (W)">_</button>
+      </div>
+    </header>
+
+    <!-- MINI PLAYER BAR (WINDOW SHADE MODE) -->
+    <div id="miniPlayerBar" class="mini-player-bar hidden">
+      <!-- Native macOS Traffic Light Spacer in Mini Mode -->
+      <div class="native-traffic-spacer mini" aria-hidden="true"></div>
+      <button id="miniPrev" class="mini-btn" title="Previous (Z)">⏮</button>
+      <button id="miniPlay" class="mini-btn play-btn" title="Play/Pause (Space)">▶</button>
+      <button id="miniNext" class="mini-btn" title="Next (B)">⏭</button>
+      <div class="mini-marquee-wrap">
+        <div id="miniMarquee" class="mini-marquee">MacAmp - Ready</div>
+      </div>
+      <canvas id="miniVisualizerCanvas" width="120" height="24"></canvas>
+      <span id="miniTime" class="mini-time">00:00</span>
+      <input type="range" id="miniVolume" class="mini-volume-slider" min="0" max="100" value="80" title="Volume">
+      <button id="btnUnshade" class="mini-btn unshade-btn" title="Restore Full MacAmp (W)">⤢</button>
+    </div>
+
+    <!-- MAIN PLAYER SECTION -->
+    <main id="mainPlayer" class="main-player">
+
+      <!-- TOP DISPLAY UNIT (LCD + SPECTRUM + METERS) -->
+      <section class="display-unit">
+        
+        <!-- Left: Status & Timers -->
+        <div class="display-left">
+          <!-- Marquee Song Display -->
+          <div class="lcd-screen marquee-container">
+            <div id="trackMarquee" class="marquee-text">⚡ MACAMP HIGH FIDELITY • READY TO ROCK • OPEN OR DROP AUDIO FILES ⚡</div>
+          </div>
+
+          <div class="lcd-row">
+            <!-- Digital 7-Segment Style Time Display -->
+            <div class="time-display" id="timeDisplay" title="Click to toggle Elapsed / Remaining time">
+              <span id="timeModeLabel" class="time-mode-badge">ELAPSED</span>
+              <span id="timeDigits" class="digital-digits">00:00</span>
+            </div>
+
+            <!-- Bitrate / Sample Rate Badges -->
+            <div class="audio-badges">
+              <span class="badge" id="badgeKbps">320 KBPS</span>
+              <span class="badge" id="badgeKhz">44.1 KHZ</span>
+              <span class="badge mono-stereo" id="badgeChannels">STEREO</span>
+            </div>
+
+            <!-- Play Status LED Indicator -->
+            <div class="transport-leds">
+              <span class="led" id="ledPlay">▶</span>
+              <span class="led" id="ledPause">❚❚</span>
+              <span class="led active" id="ledStop">■</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Center: Interactive Audio Visualizer with 1-Click Maximize -->
+        <div class="visualizer-container" id="visualizerContainer">
+          <div class="vis-header" id="visHeader">
+            <div class="vis-header-left">
+              <span class="vis-mode-label" id="visModeLabel">SPECTRUM ANALYZER</span>
+            </div>
+
+            <!-- Direct Mode Switcher Chips -->
+            <div class="vis-mode-chips" id="visModeChips">
+              <button class="vis-chip active" data-mode="0" title="Winamp Classic Spectrum" type="button">SPECTRUM</button>
+              <button class="vis-chip" data-mode="1" title="Oscilloscope Waveform" type="button">WAVE</button>
+              <button class="vis-chip" data-mode="2" title="Cyberpunk Neon Bars" type="button">NEON</button>
+              <button class="vis-chip" data-mode="3" title="Circular Radian" type="button">RADIAN</button>
+              <button class="vis-chip" data-mode="4" title="3D Warp Starfield" type="button">WARP</button>
+            </div>
+
+            <div class="vis-header-right">
+              <!-- 1-Click Visualizer Maximize / Restore Button -->
+              <button id="btnMaxVis" class="vis-expand-btn" title="Toggle Expanded Visualizer Stage (F)" type="button">
+                <span class="vis-expand-icon" id="visMaxIcon">⤢</span>
+                <span class="vis-expand-text" id="visMaxText">MAXIMIZE</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="vis-canvas-wrapper" id="visCanvasWrapper">
+            <canvas id="visualizerCanvas" width="300" height="74"></canvas>
+            
+            <!-- Maximized Theater Controls Bar (Shows inside visualizer when maximized) -->
+            <div class="vis-theater-bar" id="visTheaterBar">
+              <div class="vis-theater-info">
+                <span class="vis-theater-badge">THEATER MODE</span>
+                <span class="vis-theater-title" id="visTheaterTitle">MacAmp Visualizer Theater</span>
+                <span class="vis-theater-hint">Press <b>ESC</b> or <b>F</b> to restore</span>
+              </div>
+              <div class="vis-theater-actions">
+                <button id="btnTheaterPrev" class="vis-theater-btn" title="Previous Track (Z)" type="button">⏮</button>
+                <button id="btnTheaterPlay" class="vis-theater-btn play" title="Play/Pause (Space)" type="button">▶</button>
+                <button id="btnTheaterNext" class="vis-theater-btn" title="Next Track (B)" type="button">⏭</button>
+                <button id="btnTheaterRestore" class="vis-theater-btn restore" title="Restore Normal View (ESC / F)" type="button">⤡ RESTORE</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Stereo VU Meters -->
+        <div class="vu-meters-container" title="Stereo Audio Level VU Meters">
+          <div class="vu-channel">
+            <span class="vu-label">L</span>
+            <div class="vu-bar" id="vuLeft">
+              <div class="vu-segments" id="vuSegLeft"></div>
+              <div class="vu-peak" id="vuPeakLeft"></div>
+            </div>
+          </div>
+          <div class="vu-channel">
+            <span class="vu-label">R</span>
+            <div class="vu-bar" id="vuRight">
+              <div class="vu-segments" id="vuSegRight"></div>
+              <div class="vu-peak" id="vuPeakRight"></div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- SEEK / SCRUBBER BAR -->
+      <section class="seek-section">
+        <div class="seek-bar-wrap" id="seekBarWrap">
+          <input type="range" id="seekBar" class="seek-slider" min="0" max="100" step="0.1" value="0">
+          <div class="seek-progress" id="seekProgress"></div>
+          <div class="seek-tooltip" id="seekTooltip">00:00</div>
+        </div>
+      </section>
+
+      <!-- CONTROLS & SLIDERS ROW -->
+      <section class="controls-row">
+        <!-- Main Transport Buttons (Winamp metallic tactile style) -->
+        <div class="transport-buttons">
+          <button id="btnPrev" class="winamp-btn" title="Previous Track (Z)"><span class="icon">⏮</span></button>
+          <button id="btnPlay" class="winamp-btn play" title="Play (X)"><span class="icon">▶</span></button>
+          <button id="btnPause" class="winamp-btn" title="Pause (C)"><span class="icon">❚❚</span></button>
+          <button id="btnStop" class="winamp-btn" title="Stop (V)"><span class="icon">■</span></button>
+          <button id="btnNext" class="winamp-btn" title="Next Track (B)"><span class="icon">⏭</span></button>
+          <button id="btnOpen" class="winamp-btn eject" title="Open Music Files (L)"><span class="icon">⏏</span></button>
+        </div>
+
+        <!-- Volume & Pan Sliders -->
+        <div class="faders-group">
+          <div class="fader-item">
+            <span class="fader-icon" id="volIcon" title="Click to Mute (M)">🔊</span>
+            <input type="range" id="volumeSlider" class="fader-slider" min="0" max="100" value="80" title="Volume Slider">
+            <span class="fader-val" id="volVal">80%</span>
+          </div>
+
+          <div class="fader-item">
+            <span class="fader-icon" title="Stereo Balance">⚖️</span>
+            <input type="range" id="panSlider" class="fader-slider" min="-100" max="100" value="0" title="Balance (Left / Right)">
+            <span class="fader-val" id="panVal">C</span>
+          </div>
+        </div>
+
+        <!-- Module Toggle Buttons -->
+        <div class="module-toggles">
+          <button id="btnToggleEQ" class="toggle-btn active" title="Toggle 10-Band Equalizer (E)">EQ</button>
+          <button id="btnTogglePL" class="toggle-btn active" title="Toggle Playlist Manager (P)">PL</button>
+          <button id="btnToggleFX" class="toggle-btn" title="Toggle DSP Audio Effects Rack">FX</button>
+          <button id="btnShuffle" class="toggle-btn" title="Toggle Shuffle (S)">SHUF</button>
+          <button id="btnRepeat" class="toggle-btn" title="Toggle Repeat (R): Off / All / One">REP</button>
+        </div>
+      </section>
+
+      <!-- 10-BAND EQUALIZER MODULE -->
+      <section id="equalizerSection" class="eq-section">
+        <div class="module-header">
+          <div class="module-title">
+            <span class="dot-indicator"></span>
+            <span>GRAPHIC EQUALIZER (10-BAND)</span>
+          </div>
+
+          <div class="eq-header-controls">
+            <!-- EQ Power Switch -->
+            <label class="toggle-switch" title="Turn Equalizer On / Off">
+              <input type="checkbox" id="eqPower" checked>
+              <span class="switch-slider"></span>
+              <span class="switch-label">ON</span>
+            </label>
+
+            <!-- Presets Dropdown -->
+            <select id="eqPresetSelect" class="retro-select" title="Equalizer Presets">
+              <option value="flat">Preset: Flat</option>
+              <option value="rock">Preset: Rock</option>
+              <option value="pop">Preset: Pop</option>
+              <option value="techno">Preset: Techno</option>
+              <option value="dance">Preset: Dance</option>
+              <option value="club">Preset: Club</option>
+              <option value="bass">Preset: Bass Boost</option>
+              <option value="vocal">Preset: Vocal Boost</option>
+              <option value="metal">Preset: Heavy Metal</option>
+              <option value="classical">Preset: Classical</option>
+              <option value="jazz">Preset: Jazz</option>
+              <option value="acoustic">Preset: Acoustic</option>
+              <option value="reggae">Preset: Reggae</option>
+            </select>
+
+            <button id="btnResetEQ" class="mini-action-btn" title="Reset All Bands to 0dB">Reset</button>
+          </div>
+        </div>
+
+        <!-- Sliders Container -->
+        <div class="eq-sliders-grid">
+          <!-- Preamp Slider -->
+          <div class="eq-slider-col preamp-col">
+            <span class="eq-label preamp-label">PREAMP</span>
+            <div class="slider-track-wrap">
+              <input type="range" id="eqPreamp" class="eq-vert-slider" min="-12" max="12" step="0.5" value="0" orient="vertical">
+            </div>
+            <span class="eq-val" id="valPreamp">0 dB</span>
+          </div>
+
+          <!-- Divider -->
+          <div class="eq-divider"></div>
+
+          <!-- 10 Frequency Band Sliders -->
+          <div class="eq-slider-col">
+            <span class="eq-label">32</span>
+            <div class="slider-track-wrap">
+              <input type="range" class="eq-vert-slider eq-band" data-band="0" min="-12" max="12" step="0.5" value="0" orient="vertical">
+            </div>
+            <span class="eq-val" data-val="0">0 dB</span>
+          </div>
+
+          <div class="eq-slider-col">
+            <span class="eq-label">64</span>
+            <div class="slider-track-wrap">
+              <input type="range" class="eq-vert-slider eq-band" data-band="1" min="-12" max="12" step="0.5" value="0" orient="vertical">
+            </div>
+            <span class="eq-val" data-val="1">0 dB</span>
+          </div>
+
+          <div class="eq-slider-col">
+            <span class="eq-label">125</span>
+            <div class="slider-track-wrap">
+              <input type="range" class="eq-vert-slider eq-band" data-band="2" min="-12" max="12" step="0.5" value="0" orient="vertical">
+            </div>
+            <span class="eq-val" data-val="2">0 dB</span>
+          </div>
+
+          <div class="eq-slider-col">
+            <span class="eq-label">250</span>
+            <div class="slider-track-wrap">
+              <input type="range" class="eq-vert-slider eq-band" data-band="3" min="-12" max="12" step="0.5" value="0" orient="vertical">
+            </div>
+            <span class="eq-val" data-val="3">0 dB</span>
+          </div>
+
+          <div class="eq-slider-col">
+            <span class="eq-label">500</span>
+            <div class="slider-track-wrap">
+              <input type="range" class="eq-vert-slider eq-band" data-band="4" min="-12" max="12" step="0.5" value="0" orient="vertical">
+            </div>
+            <span class="eq-val" data-val="4">0 dB</span>
+          </div>
+
+          <div class="eq-slider-col">
+            <span class="eq-label">1K</span>
+            <div class="slider-track-wrap">
+              <input type="range" class="eq-vert-slider eq-band" data-band="5" min="-12" max="12" step="0.5" value="0" orient="vertical">
+            </div>
+            <span class="eq-val" data-val="5">0 dB</span>
+          </div>
+
+          <div class="eq-slider-col">
+            <span class="eq-label">2K</span>
+            <div class="slider-track-wrap">
+              <input type="range" class="eq-vert-slider eq-band" data-band="6" min="-12" max="12" step="0.5" value="0" orient="vertical">
+            </div>
+            <span class="eq-val" data-val="6">0 dB</span>
+          </div>
+
+          <div class="eq-slider-col">
+            <span class="eq-label">4K</span>
+            <div class="slider-track-wrap">
+              <input type="range" class="eq-vert-slider eq-band" data-band="7" min="-12" max="12" step="0.5" value="0" orient="vertical">
+            </div>
+            <span class="eq-val" data-val="7">0 dB</span>
+          </div>
+
+          <div class="eq-slider-col">
+            <span class="eq-label">8K</span>
+            <div class="slider-track-wrap">
+              <input type="range" class="eq-vert-slider eq-band" data-band="8" min="-12" max="12" step="0.5" value="0" orient="vertical">
+            </div>
+            <span class="eq-val" data-val="8">0 dB</span>
+          </div>
+
+          <div class="eq-slider-col">
+            <span class="eq-label">16K</span>
+            <div class="slider-track-wrap">
+              <input type="range" class="eq-vert-slider eq-band" data-band="9" min="-12" max="12" step="0.5" value="0" orient="vertical">
+            </div>
+            <span class="eq-val" data-val="9">0 dB</span>
+          </div>
+        </div>
+
+        <!-- Interactive EQ Curve Canvas -->
+        <div class="eq-curve-wrap">
+          <canvas id="eqCurveCanvas" width="600" height="32"></canvas>
+        </div>
+      </section>
+
+      <!-- DSP AUDIO EFFECTS RACK (COLLAPSIBLE) -->
+      <section id="effectsSection" class="effects-section hidden">
+        <div class="module-header">
+          <div class="module-title">
+            <span class="dot-indicator"></span>
+            <span>DSP AUDIO EFFECTS & DJ CONTROLS</span>
+          </div>
+        </div>
+
+        <div class="effects-grid">
+          <!-- Pitch & Speed -->
+          <div class="fx-card">
+            <div class="fx-card-header">
+              <span>DJ PITCH & SPEED</span>
+              <span id="pitchVal" class="fx-val-badge">1.00x</span>
+            </div>
+            <input type="range" id="pitchSlider" class="fader-slider" min="0.5" max="2.0" step="0.05" value="1.0">
+            <button id="btnResetPitch" class="fx-reset-btn">Reset (1.0x)</button>
+          </div>
+
+          <!-- Reverb / Room Acoustics -->
+          <div class="fx-card">
+            <div class="fx-card-header">
+              <span>ROOM ACOUSTICS / REVERB</span>
+            </div>
+            <select id="reverbSelect" class="retro-select">
+              <option value="off">Reverb: Off</option>
+              <option value="room">Small Room</option>
+              <option value="studio">Recording Studio</option>
+              <option value="hall">Concert Hall</option>
+              <option value="cathedral">Cathedral</option>
+            </select>
+            <div class="reverb-slider-row">
+              <span class="sub-label">Wet Mix:</span>
+              <input type="range" id="reverbWetSlider" class="fader-slider" min="0" max="100" value="30">
+            </div>
+          </div>
+
+          <!-- Bass Boost Dial -->
+          <div class="fx-card">
+            <div class="fx-card-header">
+              <span>SUB-BASS BOOSTER</span>
+              <span id="bassBoostVal" class="fx-val-badge">0 dB</span>
+            </div>
+            <input type="range" id="bassBoostSlider" class="fader-slider" min="0" max="12" step="0.5" value="0">
+          </div>
+
+          <!-- 3D Stereo Expander -->
+          <div class="fx-card">
+            <div class="fx-card-header">
+              <span>3D SPATIAL EXPANDER</span>
+              <span id="stereoWidthVal" class="fx-val-badge">100%</span>
+            </div>
+            <input type="range" id="stereoWidthSlider" class="fader-slider" min="0" max="200" step="5" value="100">
+          </div>
+        </div>
+      </section>
+
+<!-- PLAYLIST MANAGER (PL) -->
+      <section id="playlistSection" class="playlist-section">
+        <div class="module-header">
+          <div class="module-title">
+            <span class="dot-indicator"></span>
+            <span>PLAYLIST MANAGER</span>
+          </div>
+
+          <!-- Search / Filter box -->
+          <div class="playlist-search-wrap">
+            <input type="text" id="playlistSearch" class="search-input" placeholder="🔍 Search songs / artist...">
+          </div>
+        </div>
+
+        <!-- Drag & Drop Dropzone Notice -->
+        <div id="dropZoneOverlay" class="dropzone-overlay hidden">
+          <div class="dropzone-box">
+            <span class="drop-icon">🎵</span>
+            <span class="drop-text">DROP AUDIO FILES OR FOLDERS HERE</span>
+          </div>
+        </div>
+
+        <!-- Playlist Tracks Table / List -->
+        <div class="playlist-table-wrap" id="playlistScroll">
+          <table class="playlist-table">
+            <thead>
+              <tr>
+                <th class="th-status"></th>
+                <th class="th-num">#</th>
+                <th class="th-title">TITLE</th>
+                <th class="th-artist">ARTIST</th>
+                <th class="th-time">TIME</th>
+                <th class="th-del"></th>
+              </tr>
+            </thead>
+            <tbody id="playlistBody">
+              <!-- Dynamically populated rows -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Playlist Action Bar -->
+        <div class="playlist-action-bar">
+          <div class="action-buttons-left">
+            <button id="btnAddFiles" class="pl-btn" title="Add Audio Files">+ FILE</button>
+            <button id="btnAddFolder" class="pl-btn" title="Add Whole Folder of Music">+ FOLDER</button>
+            <button id="btnRemoveSelected" class="pl-btn" title="Remove Selected Song">- REMOVE</button>
+            <button id="btnClearPlaylist" class="pl-btn" title="Clear Entire Playlist">CLEAR</button>
+          </div>
+
+          <div class="action-buttons-right">
+            <select id="sortSelect" class="retro-select" title="Sort Playlist">
+              <option value="">Sort Playlist...</option>
+              <option value="title">Sort by Title</option>
+              <option value="artist">Sort by Artist</option>
+              <option value="duration">Sort by Duration</option>
+              <option value="random">Shuffle Order</option>
+            </select>
+            <button id="btnExportM3U" class="pl-btn" title="Export to M3U Playlist file">EXPORT M3U</button>
+            <button id="btnImportM3U" class="pl-btn" title="Import M3U Playlist file">IMPORT M3U</button>
+          </div>
+        </div>
+
+        <!-- Playlist Stats Footer -->
+        <div class="playlist-footer-bar">
+          <span id="plStatsCount">0 tracks</span>
+          <span class="footer-separator">•</span>
+          <span id="plStatsDuration">00:00 total time</span>
+          <span class="footer-separator">•</span>
+          <span class="footer-credits-tag">Developed by <b>ToolNPlay.com</b> • Authors: <b>Pardeep Kumar & Harsh Suman</b></span>
+          <div class="footer-right">
+            <button id="btnSongInfo" class="footer-info-btn" title="Track Metadata Inspector">ℹ️ INFO</button>
+            <button id="btnShortcuts" class="footer-info-btn" title="Keyboard Shortcuts Sheet">⌨️ KEYS</button>
+            <button id="btnAbout" class="footer-info-btn" title="About MacAmp & Credits">⚡ ABOUT</button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- HIDDEN INPUTS FOR NATIVE / WEB FILE PICKERS -->
+    <input type="file" id="filePicker" multiple accept="audio/*,.mp3,.wav,.ogg,.m4a,.flac,.aac,.aiff,.webm" style="display:none">
+    <input type="file" id="folderPicker" webkitdirectory directory multiple style="display:none">
+    <input type="file" id="m3uPicker" accept=".m3u,.m3u8,.json" style="display:none">
+
+    <!-- METADATA & ALBUM ART INSPECTOR MODAL -->
+    <div id="infoModal" class="modal-backdrop hidden">
+      <div class="modal-box">
+        <div class="modal-header">
+          <h3>🎵 TRACK INFORMATION & ID3 TAGS</h3>
+          <button id="btnCloseInfoModal" class="modal-close-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="album-art-wrap">
+            <div id="artVinyl" class="art-vinyl-record">
+              <div id="albumArtImg" class="album-art-placeholder">⚡</div>
+            </div>
+          </div>
+          <div class="meta-table-wrap">
+            <table class="meta-table">
+              <tr><td>Title:</td><td id="metaTitle">-</td></tr>
+              <tr><td>Artist:</td><td id="metaArtist">-</td></tr>
+              <tr><td>Album:</td><td id="metaAlbum">-</td></tr>
+              <tr><td>Duration:</td><td id="metaDuration">-</td></tr>
+              <tr><td>Format:</td><td id="metaFormat">-</td></tr>
+              <tr><td>Sample Rate:</td><td id="metaSampleRate">-</td></tr>
+              <tr><td>Bitrate:</td><td id="metaBitrate">-</td></tr>
+              <tr><td>Channels:</td><td id="metaChannels">-</td></tr>
+              <tr><td>File Size:</td><td id="metaSize">-</td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- KEYBOARD SHORTCUTS REFERENCE MODAL -->
+    <div id="shortcutsModal" class="modal-backdrop hidden">
+      <div class="modal-box">
+        <div class="modal-header">
+          <h3>⌨️ MACAMP KEYBOARD SHORTCUTS</h3>
+          <button id="btnCloseShortcutsModal" class="modal-close-btn">&times;</button>
+        </div>
+        <div class="modal-body shortcuts-grid">
+          <div class="sc-item"><kbd>Space</kbd> <span>Play / Pause</span></div>
+          <div class="sc-item"><kbd>Z</kbd> <span>Previous Track</span></div>
+          <div class="sc-item"><kbd>X</kbd> <span>Play</span></div>
+          <div class="sc-item"><kbd>C</kbd> <span>Pause</span></div>
+          <div class="sc-item"><kbd>V</kbd> <span>Stop</span></div>
+          <div class="sc-item"><kbd>B</kbd> <span>Next Track</span></div>
+          <div class="sc-item"><kbd>←</kbd> / <kbd>→</kbd> <span>Seek Back / Forward 5s</span></div>
+          <div class="sc-item"><kbd>↑</kbd> / <kbd>↓</kbd> <span>Volume Up / Down</span></div>
+          <div class="sc-item"><kbd>M</kbd> <span>Mute Audio</span></div>
+          <div class="sc-item"><kbd>S</kbd> <span>Toggle Shuffle</span></div>
+          <div class="sc-item"><kbd>R</kbd> <span>Toggle Repeat</span></div>
+          <div class="sc-item"><kbd>E</kbd> <span>Toggle Equalizer</span></div>
+          <div class="sc-item"><kbd>P</kbd> <span>Toggle Playlist</span></div>
+          <div class="sc-item"><kbd>W</kbd> <span>Toggle Mini Player (Window Shade)</span></div>
+          <div class="sc-item"><kbd>T</kbd> <span>Toggle Always on Top</span></div>
+          <div class="sc-item"><kbd>L</kbd> / <kbd>Cmd+O</kbd> <span>Open Files</span></div>
+          <div class="sc-item"><kbd>1 - 0</kbd> <span>Switch Themes / Skins</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ABOUT & CREDITS MODAL -->
+    <div id="aboutModal" class="modal-backdrop hidden">
+      <div class="modal-box about-modal-box">
+        <div class="modal-header">
+          <h3>⚡ ABOUT MACAMP</h3>
+          <button id="btnCloseAboutModal" class="modal-close-btn">&times;</button>
+        </div>
+        <div class="modal-body about-modal-body">
+          <div class="about-hero">
+            <span class="about-bolt">⚡</span>
+            <div class="about-title">MACAMP</div>
+            <div class="about-sub">High-Fidelity Retro Music Player for macOS, Windows & Android</div>
+          </div>
+          <div class="credits-badge-box">
+            <div class="cr-row"><span class="cr-lbl">Developed by:</span> <span class="cr-val">ToolNPlay.com</span></div>
+            <div class="cr-row"><span class="cr-lbl">Authors:</span> <span class="cr-val">Pardeep Kumar & Harsh Suman</span></div>
+            <div class="cr-row"><span class="cr-lbl">Version:</span> <span class="cr-val">1.0.0</span></div>
+          </div>
+          <div class="about-features-pill-list">
+            <span>🎛️ 10-Band EQ & Preamp</span>
+            <span>🌌 5 Audio Visualizers</span>
+            <span>🎚️ DSP Reverb & Bass Boost</span>
+            <span>🪟 Window Shade Mode</span>
+            <span>🎨 25 Retro & Festival Skins</span>
+          </div>
+          <div class="about-btn-row">
+            <button id="btnAboutOk" class="modal-ok-btn">Rock On!</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SCRIPT INCLUSIONS -->
+  <script src="audio-engine.js"></script>
+  <script src="visualizer.js"></script>
+  <script src="equalizer.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
