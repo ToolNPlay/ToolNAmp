@@ -5,17 +5,17 @@
     <key>CFBundleDevelopmentRegion</key>
     <string>en</string>
     <key>CFBundleExecutable</key>
-    <string>MacAmp</string>
+    <string>ToolNAmp</string>
     <key>CFBundleIconFile</key>
     <string>AppIcon</string>
     <key>CFBundleIdentifier</key>
-    <string>com.antigravity.macamp</string>
+    <string>com.toolnplay.toolnamp</string>
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundleName</key>
-    <string>MacAmp</string>
+    <string>ToolNAmp</string>
     <key>CFBundleDisplayName</key>
-    <string>MacAmp</string>
+    <string>ToolNAmp</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>

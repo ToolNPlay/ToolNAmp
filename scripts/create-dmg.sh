@@ -4,16 +4,16 @@ set -e
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 cd "$DIR"
 
-echo "=== Creating MacAmp DMG Installer ==="
+echo "=== Creating ToolNAmp DMG Installer ==="
 
 BUILD_DIR="$DIR/build"
-APP_DIR="$BUILD_DIR/MacAmp.app"
-DMG_PATH="$BUILD_DIR/MacAmp.dmg"
+APP_DIR="$BUILD_DIR/ToolNAmp.app"
+DMG_PATH="$BUILD_DIR/ToolNAmp.dmg"
 STAGE_DIR="$BUILD_DIR/dmg_stage"
 TEMP_ISO="$BUILD_DIR/temp_stage.iso"
 
 if [ ! -d "$APP_DIR" ]; then
-  echo "Error: MacAmp.app not found. Please run scripts/build.sh first."
+  echo "Error: ToolNAmp.app not found. Please run scripts/build.sh first."
   exit 1
 fi
 
@@ -21,7 +21,7 @@ fi
 rm -rf "$STAGE_DIR" "$DMG_PATH" "$TEMP_ISO"
 mkdir -p "$STAGE_DIR"
 
-echo "Copying MacAmp.app to DMG staging directory..."
+echo "Copying ToolNAmp.app to DMG staging directory..."
 cp -R "$APP_DIR" "$STAGE_DIR/"
 
 echo "Creating /Applications shortcut for drag-and-drop installation..."
@@ -29,11 +29,11 @@ ln -s /Applications "$STAGE_DIR/Applications"
 
 # Add README note inside DMG
 cat << 'EOF' > "$STAGE_DIR/How to Install.txt"
-⚡ MACAMP - High Fidelity Music Player for macOS ⚡
+⚡ TOOLNAMP - High Fidelity Retro Music Player ⚡
 Developed by ToolNPlay.com • Authors: Pardeep Kumar & Harsh Suman
 
 INSTALLATION:
-Simply drag "MacAmp.app" into the "Applications" folder shortcut!
+Simply drag "ToolNAmp.app" into the "Applications" folder shortcut!
 
 FEATURES:
 - Authentic Native macOS Window Controls (Close, Minimize, Zoom/Maximize)
@@ -67,7 +67,7 @@ L = Open Files
 EOF
 
 echo "Creating native macOS compressed DMG (UDZO format)..."
-hdiutil create -volname "MacAmp" -srcfolder "$STAGE_DIR" -ov -format UDZO "$DMG_PATH"
+hdiutil create -volname "ToolNAmp" -srcfolder "$STAGE_DIR" -ov -format UDZO "$DMG_PATH"
 
 # Cleanup staging files
 rm -rf "$STAGE_DIR"

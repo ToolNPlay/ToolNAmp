@@ -1,5 +1,5 @@
 @echo off
-echo === Building MacAmp for Windows (.exe) ===
+echo === Building ToolNAmp for Windows (.exe) ===
 
 where npm >nul 2>nul
 if %errorlevel% neq 0 (

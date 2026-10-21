@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.toolnplay.macamp">
+    package="com.toolnplay.toolnamp">
 
     <!-- Audio & Storage Permissions -->
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
@@ -13,7 +13,7 @@
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
-        android:label="MacAmp"
+        android:label="ToolNAmp"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.NoTitleBar.Fullscreen"

@@ -1,4 +1,4 @@
-# ⚡ MacAmp — High-Fidelity Retro Music Player
+# ⚡ ToolNAmp — High-Fidelity Retro Music Player
 
 [![Platform](https://img.shields.io/badge/Platform-macOS%20%7C%20Windows%20%7C%20Android-blue.svg)](https://toolnplay.com)
 [![Release](https://img.shields.io/badge/Release-v1.0.0-emerald.svg)](https://toolnplay.com)
@@ -9,7 +9,7 @@
 > **Authors**: **Pardeep Kumar & Harsh Suman**  
 > **Target Formats**: macOS (`.dmg`), Windows (`.exe`), Android (`.apk`)
 
-**MacAmp** is an ultra-fast, minimalistic, yet feature-packed offline music player inspired by the legendary aesthetics and tactile experience of **Winamp**, re-engineered for modern platforms with 25 themes, a 10-band graphic equalizer, 5 real-time 60 FPS audio visualizers, DSP effects rack, window shading, and persistent playback history.
+**ToolNAmp** is an ultra-fast, minimalistic, yet feature-packed offline music player inspired by the legendary aesthetics and tactile experience of **Winamp**, re-engineered for modern platforms with 25 themes, a 10-band graphic equalizer, 5 real-time 60 FPS audio visualizers, DSP effects rack, window shading, and persistent playback history.
 
 ---
 
@@ -17,19 +17,19 @@
 
 - **Winamp Classic & Modern Skins**: Authentic brushed metal, phosphor green LCD, glowing VU meters, and tactile buttons.
 - **1-Click Theater Visualizer**: Expand the stage to fullscreen or maximized window with one click (`F` or `⤢ MAXIMIZE`).
-- **Window Shade / Mini Player**: Shrink MacAmp to a compact 48px desktop bar (`W`).
+- **Window Shade / Mini Player**: Shrink ToolNAmp to a compact 48px desktop bar (`W`).
 - **25 Rich Themes**: Curated festival skins (Diwali, New Year, Christmas, Holi, Dussehra, Ram Navami, Janmashtami, Maha Shivratri, Halloween) and iconic retro computing skins (Winamp Classic, The Matrix, Game Boy, Amber CRT, Vintage Hi-Fi, Cyberpunk 2077, OLED Black, and more).
 
 ---
 
 ## 📦 Cross-Platform Releases & Downloads
 
-MacAmp is built from a single unified codebase with native platform bindings:
+ToolNAmp is built from a single unified codebase with native platform bindings:
 
 | Platform | Format | Build Command | Output Location |
 | :--- | :--- | :--- | :--- |
-| **macOS** | `.dmg` installer & `.app` | `./scripts/build.sh && ./scripts/create-dmg.sh` | `build/MacAmp.dmg` (~1.7 MB) |
-| **Windows** | `.exe` installer & portable | `npm run build:win` or `scripts/build-win.bat` | `dist/MacAmp Setup 1.0.0.exe` |
+| **macOS** | `.dmg` installer & `.app` | `./scripts/build.sh && ./scripts/create-dmg.sh` | `build/ToolNAmp.dmg` (~1.7 MB) |
+| **Windows** | `.exe` installer & portable | `npm run build:win` or `scripts/build-win.bat` | `dist/ToolNAmp Setup 1.0.0.exe` |
 | **Android** | `.apk` package | `./scripts/build-apk.sh` or Android Studio | `android/app/build/outputs/apk/` |
 
 ---
@@ -60,9 +60,9 @@ Cycle through visualizer modes by clicking the screen or using direct selector c
 - **L/R Stereo Balance**: Pan fader with center detent.
 
 ### 4. 🪟 Window Shade / Mini Player Mode
-- Press `W` (or click `_` in the header) to collapse MacAmp into an ultra-sleek, compact horizontal bar (~48px height).
+- Press `W` (or click `_` in the header) to collapse ToolNAmp into an ultra-sleek, compact horizontal bar (~48px height).
 - Displays marquee song info, mini live visualizer, playback controls, time, and volume.
-- **Always on Top (Float)**: Click `📌` or press `T` to pin MacAmp over other windows while coding, gaming, or browsing.
+- **Always on Top (Float)**: Click `📌` or press `T` to pin ToolNAmp over other windows while coding, gaming, or browsing.
 
 ### 5. 🎨 25 Rich Skins & Festival Themes
 Switch themes on the fly from the dropdown menu:
@@ -100,7 +100,7 @@ Switch themes on the fly from the dropdown menu:
 
 ### 6. 📁 Universal Audio Format Support & History Persistence
 - **Audio Codecs**: MP3, WAV, FLAC, M4A, AAC, OGG, AIFF, and WEBM.
-- **Native Drag & Drop**: Drag single audio files or entire folders from Finder/Explorer directly onto MacAmp.
+- **Native Drag & Drop**: Drag single audio files or entire folders from Finder/Explorer directly onto ToolNAmp.
 - **Recursive Folder Ingestion**: Automatically scans nested subfolders for music.
 - **Collection History Persistence**: Remembers your entire playlist, current song, volume, and playback seek position across app restarts (`collection.json`).
 - **M3U Playlist Support**: Export and import standard `.m3u` / `.m3u8` playlist files.
@@ -142,10 +142,10 @@ Build the native Cocoa/WebKit Mach-O application and compressed `.dmg` installer
 # 1. Compile native macOS bundle:
 ./scripts/build.sh
 
-# 2. Package into MacAmp.dmg:
+# 2. Package into ToolNAmp.dmg:
 ./scripts/create-dmg.sh
 ```
-Output: `build/MacAmp.dmg` (~1.7 MB)
+Output: `build/ToolNAmp.dmg` (~1.7 MB)
 
 ### Windows (.exe)
 Package the Windows 64-bit installer and portable executable using Electron:
@@ -156,7 +156,7 @@ npm run build:win
 # On Windows:
 scripts\build-win.bat
 ```
-Output: `dist/MacAmp Setup 1.0.0.exe` and `dist/MacAmp 1.0.0.exe`
+Output: `dist/ToolNAmp Setup 1.0.0.exe` and `dist/ToolNAmp 1.0.0.exe`
 
 ### Android (.apk)
 Sync web assets and build Android APK:
@@ -175,10 +175,10 @@ Output: `android/app/build/outputs/apk/release/app-release.apk`
 ## 📂 Project Architecture
 
 ```
-MacAmp/
+ToolNAmp/
 ├── build/
-│   ├── MacAmp.app             # Native macOS Application bundle
-│   └── MacAmp.dmg             # Distributable macOS DMG installer (1.7 MB)
+│   ├── ToolNAmp.app           # Native macOS Application bundle
+│   └── ToolNAmp.dmg           # Distributable macOS DMG installer (1.7 MB)
 ├── assets/
 │   ├── AppIcon.icns           # High-resolution multi-size macOS icon
 │   ├── icon.png               # High-resolution 512x512 icon for Windows & Android

@@ -1,5 +1,5 @@
 {
-  "name": "macamp",
+  "name": "toolnamp",
   "version": "1.0.0",
   "description": "High-Fidelity Winamp-Inspired Retro Music Player for macOS, Windows, and Android",
   "main": "electron/main.js",
@@ -11,7 +11,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/toolnplay/macamp.git"
+    "url": "https://github.com/toolnplay/toolnamp.git"
   },
   "keywords": [
     "music-player",
@@ -36,8 +36,8 @@
     "build:all": "npm run build:mac && npm run build:win && npm run build:android"
   },
   "build": {
-    "appId": "com.toolnplay.macamp",
-    "productName": "MacAmp",
+    "appId": "com.toolnplay.toolnamp",
+    "productName": "ToolNAmp",
     "copyright": "Copyright © 2026 ToolNPlay.com (Pardeep Kumar & Harsh Suman)",
     "directories": {
       "output": "dist"
@@ -65,7 +65,7 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "MacAmp"
+      "shortcutName": "ToolNAmp"
     },
     "mac": {
       "category": "public.app-category.music",

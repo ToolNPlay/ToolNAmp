@@ -1,10 +1,11 @@
 /**
- * MacAmp Main Application Controller
+ * ToolNAmp Main Application Controller
  * Handles Playlist, Drag & Drop, Playback State,
- * UI Updates, Cocoa Bridge, and Keyboard Shortcuts.
+ * UI Updates, Cross-Platform Native Bridge, and Keyboard Shortcuts.
+ * Developed by ToolNPlay.com • Authors: Pardeep Kumar & Harsh Suman
  */
 
-class MacAmpApp {
+class ToolNAmpApp {
   constructor() {
     this.playlist = [];
     this.currentIndex = -1;
@@ -80,9 +81,9 @@ class MacAmpApp {
       };
 
       const jsonStr = JSON.stringify(state);
-      localStorage.setItem('macamp_collection_state', jsonStr);
+      localStorage.setItem('toolnamp_collection_state', jsonStr);
 
-      // Also persist to native ~/Library/Application Support/MacAmp/collection.json
+      // Also persist to native application storage collection.json
       this.sendNative('saveCollection', { data: jsonStr });
     } catch (e) {
       console.warn("Failed to save collection:", e);
@@ -91,7 +92,7 @@ class MacAmpApp {
 
   loadSavedCollection() {
     try {
-      const raw = localStorage.getItem('macamp_collection_state');
+      const raw = localStorage.getItem('toolnamp_collection_state') || localStorage.getItem('macamp_collection_state');
       if (raw) {
         const state = JSON.parse(raw);
         if (state && Array.isArray(state.tracks) && state.tracks.length > 0) {
@@ -108,7 +109,7 @@ class MacAmpApp {
   applyCollectionState(state) {
     if (!state || !Array.isArray(state.tracks)) return;
 
-    // Filter valid offline tracks (macamp-audio:// or relative audio files)
+    // Filter valid offline tracks (macamp-audio://, toolnamp-audio://, or relative audio files)
     this.playlist = state.tracks.filter(t => t && t.url && !t.url.startsWith('blob:') && !t.id?.startsWith('yt-') && !t.url.includes('googlevideo.com') && !t.url.startsWith('http://') && !t.url.startsWith('https://'));
     
     if (typeof state.shuffle === 'boolean') {
@@ -154,7 +155,7 @@ class MacAmpApp {
       this.currentIndex = -1;
       const marquee = document.getElementById('trackMarquee');
       if (marquee) {
-        marquee.textContent = `⚡ MACAMP HIGH FIDELITY • READY TO ROCK • OPEN OR DROP AUDIO FILES ⚡`;
+        marquee.textContent = `⚡ TOOLNAMP HIGH FIDELITY • READY TO ROCK • OPEN OR DROP AUDIO FILES ⚡`;
       }
     }
   }
@@ -1293,11 +1294,12 @@ class MacAmpApp {
     }
   }
 
-  // --- COCOA NATIVE MESSAGING BRIDGE ---
+  // --- CROSS-PLATFORM NATIVE MESSAGING BRIDGE ---
   sendNative(action, payload = {}) {
-    if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.macamp) {
+    const handler = window.webkit && window.webkit.messageHandlers && (window.webkit.messageHandlers.toolnamp || window.webkit.messageHandlers.macamp);
+    if (handler) {
       try {
-        window.webkit.messageHandlers.macamp.postMessage({ action, ...payload });
+        handler.postMessage({ action, ...payload });
       } catch (e) {
         console.log("Native Cocoa message error:", e);
       }
@@ -1321,5 +1323,5 @@ class MacAmpApp {
 
 // Global App Initialization
 window.addEventListener('DOMContentLoaded', () => {
-  window.macAmp = new MacAmpApp();
+  window.toolNAmp = window.macAmp = new ToolNAmpApp();
 });

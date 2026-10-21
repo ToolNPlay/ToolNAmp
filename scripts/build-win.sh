@@ -4,7 +4,7 @@ set -e
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 cd "$DIR"
 
-echo "=== Building MacAmp for Windows (.exe) ==="
+echo "=== Building ToolNAmp for Windows (.exe) ==="
 
 if ! command -v npm &> /dev/null; then
   echo "Error: Node.js and npm are required to build the Windows executable."

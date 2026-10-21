@@ -4,10 +4,10 @@ set -e
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 cd "$DIR"
 
-echo "=== Building MacAmp for macOS ==="
+echo "=== Building ToolNAmp for macOS ==="
 
 BUILD_DIR="$DIR/build"
-APP_DIR="$BUILD_DIR/MacAmp.app"
+APP_DIR="$BUILD_DIR/ToolNAmp.app"
 CONTENTS_DIR="$APP_DIR/Contents"
 MACOS_DIR="$CONTENTS_DIR/MacOS"
 RESOURCES_DIR="$CONTENTS_DIR/Resources"
@@ -23,9 +23,9 @@ clang -O3 -fobjc-arc \
   -framework Cocoa \
   -framework WebKit \
   "$DIR/src/main.m" \
-  -o "$MACOS_DIR/MacAmp"
+  -o "$MACOS_DIR/ToolNAmp"
 
-chmod +x "$MACOS_DIR/MacAmp"
+chmod +x "$MACOS_DIR/ToolNAmp"
 
 # 3. Copy Plist & Icons
 echo "Packaging Info.plist and AppIcon.icns..."

@@ -1,5 +1,5 @@
 /**
- * MacAmp Electron Main Process
+ * ToolNAmp Electron Main Process
  * Cross-platform desktop player for Windows (.exe), Linux, and macOS.
  * Developed by ToolNPlay.com • Authors: Pardeep Kumar & Harsh Suman
  */
@@ -56,7 +56,7 @@ function fileToTrackObject(filePath) {
   }
 
   // Convert to local streaming URL
-  const audioURL = `macamp-audio://local/${filePath.replace(/\\/g, '/')}`;
+  const audioURL = `toolnamp-audio://local/${filePath.replace(/\\/g, '/')}`;
 
   return {
     title,
@@ -75,6 +75,7 @@ function createWindow() {
     frame: false,
     titleBarStyle: 'hidden',
     backgroundColor: '#0c0e14',
+    title: 'ToolNAmp',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -109,15 +110,17 @@ function createWindow() {
 
 // Register custom protocol for local audio streaming
 app.whenReady().then(() => {
-  protocol.registerFileProtocol('macamp-audio', (request, callback) => {
-    let raw = request.url.replace(/^macamp-audio:\/\/local\/?/, '');
+  const handleAudioProtocol = (request, callback) => {
+    let raw = request.url.replace(/^(?:toolnamp|macamp)-audio:\/\/local\/?/, '');
     raw = decodeURIComponent(raw);
     if (process.platform === 'win32' && !raw.includes(':') && raw.length > 2) {
-      // Handle /C:/Users/...
       if (raw.startsWith('/')) raw = raw.substring(1);
     }
     callback({ path: path.normalize(raw) });
-  });
+  };
+
+  protocol.registerFileProtocol('toolnamp-audio', handleAudioProtocol);
+  protocol.registerFileProtocol('macamp-audio', handleAudioProtocol);
 
   createWindow();
 
@@ -131,7 +134,7 @@ app.on('window-all-closed', () => {
 });
 
 // IPC Action Handlers
-ipcMain.on('macamp-action', async (event, body) => {
+const handleAction = async (event, body) => {
   if (!body || !body.action) return;
 
   const action = body.action;
@@ -192,7 +195,7 @@ ipcMain.on('macamp-action', async (event, body) => {
 
     case 'openFile': {
       const res = await dialog.showOpenDialog(mainWindow, {
-        title: 'Select Audio Files for MacAmp',
+        title: 'Select Audio Files for ToolNAmp',
         properties: ['openFile', 'multiSelections'],
         filters: [{ name: 'Audio Files', extensions: ['mp3', 'wav', 'flac', 'ogg', 'm4a', 'aac', 'aiff', 'webm'] }]
       });
@@ -206,7 +209,7 @@ ipcMain.on('macamp-action', async (event, body) => {
 
     case 'openFolder': {
       const res = await dialog.showOpenDialog(mainWindow, {
-        title: 'Select Folder of Music to Import into MacAmp',
+        title: 'Select Folder of Music to Import into ToolNAmp',
         properties: ['openDirectory']
       });
 
@@ -236,4 +239,8 @@ ipcMain.on('macamp-action', async (event, body) => {
     default:
       break;
   }
-});
+};
+
+ipcMain.on('toolnamp-action', handleAction);
+ipcMain.on('macamp-action', handleAction);
+

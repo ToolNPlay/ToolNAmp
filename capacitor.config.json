@@ -1,6 +1,6 @@
 {
-  "appId": "com.toolnplay.macamp",
-  "appName": "MacAmp",
+  "appId": "com.toolnplay.toolnamp",
+  "appName": "ToolNAmp",
   "webDir": "src/web",
   "bundledWebRuntime": false,
   "server": {

@@ -172,7 +172,7 @@
                                                 backing:NSBackingStoreBuffered
                                                   defer:NO];
                                                   
-    [self.window setTitle:@"MacAmp"];
+    [self.window setTitle:@"ToolNAmp"];
     [self.window setMinSize:NSMakeSize(540, 420)];
     [self.window setTitlebarAppearsTransparent:YES];
     [self.window setTitleVisibility:NSWindowTitleHidden];
@@ -192,7 +192,8 @@
     WKWebViewConfiguration *config = [[WKWebViewConfiguration alloc] init];
     config.mediaTypesRequiringUserActionForPlayback = WKAudiovisualMediaTypeNone;
     
-    // Register macamp-audio:// scheme handler
+    // Register toolnamp-audio:// and macamp-audio:// scheme handlers
+    [config setURLSchemeHandler:[[MacAmpAudioSchemeHandler alloc] init] forURLScheme:@"toolnamp-audio"];
     [config setURLSchemeHandler:[[MacAmpAudioSchemeHandler alloc] init] forURLScheme:@"macamp-audio"];
     
     @try {
@@ -202,6 +203,7 @@
     } @catch (NSException *e) {}
     
     // Script message handler
+    [config.userContentController addScriptMessageHandler:self name:@"toolnamp"];
     [config.userContentController addScriptMessageHandler:self name:@"macamp"];
     
     self.webView = [[MacAmpWebView alloc] initWithFrame:self.window.contentView.bounds configuration:config];
@@ -251,15 +253,15 @@
     // App Menu
     NSMenuItem *appMenuItem = [[NSMenuItem alloc] init];
     [mainMenu addItem:appMenuItem];
-    NSMenu *appMenu = [[NSMenu alloc] initWithTitle:@"MacAmp"];
-    [appMenu addItemWithTitle:@"About MacAmp" action:@selector(showAbout) keyEquivalent:@""];
+    NSMenu *appMenu = [[NSMenu alloc] initWithTitle:@"ToolNAmp"];
+    [appMenu addItemWithTitle:@"About ToolNAmp" action:@selector(showAbout) keyEquivalent:@""];
     [appMenu addItem:[NSMenuItem separatorItem]];
-    [appMenu addItemWithTitle:@"Hide MacAmp" action:@selector(hide:) keyEquivalent:@"h"];
+    [appMenu addItemWithTitle:@"Hide ToolNAmp" action:@selector(hide:) keyEquivalent:@"h"];
     [appMenu addItemWithTitle:@"Hide Others" action:@selector(hideOtherApplications:) keyEquivalent:@"h"];
     [[appMenu.itemArray lastObject] setKeyEquivalentModifierMask:NSEventModifierFlagOption | NSEventModifierFlagCommand];
     [appMenu addItemWithTitle:@"Show All" action:@selector(unhideAllApplications:) keyEquivalent:@""];
     [appMenu addItem:[NSMenuItem separatorItem]];
-    [appMenu addItemWithTitle:@"Quit MacAmp" action:@selector(terminate:) keyEquivalent:@"q"];
+    [appMenu addItemWithTitle:@"Quit ToolNAmp" action:@selector(terminate:) keyEquivalent:@"q"];
     [appMenuItem setSubmenu:appMenu];
     
     // File Menu
@@ -301,8 +303,8 @@
 
 - (void)showAbout {
     NSAlert *alert = [[NSAlert alloc] init];
-    [alert setMessageText:@"⚡ MacAmp v1.0"];
-    [alert setInformativeText:@"The Ultimate Winamp-Inspired Music Player for macOS\n\n"
+    [alert setMessageText:@"⚡ ToolNAmp v1.0"];
+    [alert setInformativeText:@"The Ultimate Retro High-Fidelity Music Player\n\n"
                               @"• Developed by: ToolNPlay.com\n"
                               @"• Authors: Pardeep Kumar & Harsh Suman\n\n"
                               @"Features:\n"
@@ -327,23 +329,23 @@
 }
 
 - (void)menuPlayPause {
-    [self.webView evaluateJavaScript:@"window.macAmp && window.macAmp.togglePlayPause()" completionHandler:nil];
+    [self.webView evaluateJavaScript:@"(window.toolNAmp || window.macAmp) && (window.toolNAmp || window.macAmp).togglePlayPause()" completionHandler:nil];
 }
 
 - (void)menuNext {
-    [self.webView evaluateJavaScript:@"window.macAmp && window.macAmp.nextTrack()" completionHandler:nil];
+    [self.webView evaluateJavaScript:@"(window.toolNAmp || window.macAmp) && (window.toolNAmp || window.macAmp).nextTrack()" completionHandler:nil];
 }
 
 - (void)menuPrev {
-    [self.webView evaluateJavaScript:@"window.macAmp && window.macAmp.prevTrack()" completionHandler:nil];
+    [self.webView evaluateJavaScript:@"(window.toolNAmp || window.macAmp) && (window.toolNAmp || window.macAmp).prevTrack()" completionHandler:nil];
 }
 
 - (void)menuStop {
-    [self.webView evaluateJavaScript:@"window.macAmp && window.macAmp.stop()" completionHandler:nil];
+    [self.webView evaluateJavaScript:@"(window.toolNAmp || window.macAmp) && (window.toolNAmp || window.macAmp).stop()" completionHandler:nil];
 }
 
 - (void)menuToggleMini {
-    [self.webView evaluateJavaScript:@"window.macAmp && window.macAmp.toggleMiniMode()" completionHandler:nil];
+    [self.webView evaluateJavaScript:@"(window.toolNAmp || window.macAmp) && (window.toolNAmp || window.macAmp).toggleMiniMode()" completionHandler:nil];
 }
 
 - (void)menuToggleAlwaysOnTop {
@@ -369,13 +371,13 @@
                                    visibleFrame.origin.y + (visibleFrame.size.height - 640) / 2.0,
                                    860, 640);
         [self.window setFrame:target display:YES animate:YES];
-        [self.webView evaluateJavaScript:@"window.macAmp && window.macAmp.onMaximizeChanged(false)" completionHandler:nil];
+        [self.webView evaluateJavaScript:@"(window.toolNAmp || window.macAmp) && (window.toolNAmp || window.macAmp).onMaximizeChanged(false)" completionHandler:nil];
     } else {
         // Maximize to full available screen
         self.unmaximizedFrame = self.window.frame;
         self.isMaximized = YES;
         [self.window setFrame:visibleFrame display:YES animate:YES];
-        [self.webView evaluateJavaScript:@"window.macAmp && window.macAmp.onMaximizeChanged(true)" completionHandler:nil];
+        [self.webView evaluateJavaScript:@"(window.toolNAmp || window.macAmp) && (window.toolNAmp || window.macAmp).onMaximizeChanged(true)" completionHandler:nil];
     }
 }
 
@@ -439,9 +441,19 @@
 - (NSString *)collectionFilePath {
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES);
     NSString *baseDir = paths.firstObject ?: NSTemporaryDirectory();
-    NSString *appDir = [baseDir stringByAppendingPathComponent:@"MacAmp"];
+    NSString *appDir = [baseDir stringByAppendingPathComponent:@"ToolNAmp"];
+    NSString *oldAppDir = [baseDir stringByAppendingPathComponent:@"MacAmp"];
+    
     [[NSFileManager defaultManager] createDirectoryAtPath:appDir withIntermediateDirectories:YES attributes:nil error:nil];
-    return [appDir stringByAppendingPathComponent:@"collection.json"];
+    NSString *newPath = [appDir stringByAppendingPathComponent:@"collection.json"];
+    NSString *oldPath = [oldAppDir stringByAppendingPathComponent:@"collection.json"];
+    
+    // Auto-migrate from MacAmp collection.json if needed
+    if (![[NSFileManager defaultManager] fileExistsAtPath:newPath] && [[NSFileManager defaultManager] fileExistsAtPath:oldPath]) {
+        [[NSFileManager defaultManager] copyItemAtPath:oldPath toPath:newPath error:nil];
+    }
+    
+    return newPath;
 }
 
 - (void)webView:(WKWebView *)webView didFinishNavigation:(WKNavigation *)navigation {
@@ -457,7 +469,7 @@
                     escaped = [escaped stringByReplacingOccurrencesOfString:@"'" withString:@"\\'"];
                     escaped = [escaped stringByReplacingOccurrencesOfString:@"\n" withString:@"\\n"];
                     escaped = [escaped stringByReplacingOccurrencesOfString:@"\r" withString:@""];
-                    NSString *js = [NSString stringWithFormat:@"window.macAmp && window.macAmp.loadCollectionFromNative('%@');", escaped];
+                    NSString *js = [NSString stringWithFormat:@"(window.toolNAmp || window.macAmp) && (window.toolNAmp || window.macAmp).loadCollectionFromNative('%@');", escaped];
                     dispatch_async(dispatch_get_main_queue(), ^{
                         [self.webView evaluateJavaScript:js completionHandler:nil];
                     });
@@ -497,7 +509,7 @@
     [panel setCanChooseDirectories:NO];
     [panel setAllowsMultipleSelection:YES];
     [panel setAllowedFileTypes:@[@"mp3", @"wav", @"flac", @"ogg", @"m4a", @"aac", @"aiff", @"webm"]];
-    [panel setMessage:@"Select audio files to add to MacAmp playlist:"];
+    [panel setMessage:@"Select audio files to add to ToolNAmp playlist:"];
     
     [panel beginSheetModalForWindow:self.window completionHandler:^(NSModalResponse result) {
         if (result == NSModalResponseOK && panel.URLs.count > 0) {
@@ -580,7 +592,7 @@
             title = [[parts subarrayWithRange:NSMakeRange(1, parts.count - 1)] componentsJoinedByString:@" - "];
         }
         
-        NSString *audioURL = [NSString stringWithFormat:@"macamp-audio://local%@", [url path]];
+        NSString *audioURL = [NSString stringWithFormat:@"toolnamp-audio://local%@", [url path]];
         [trackDicts addObject:@{
             @"title": title,
             @"artist": artist,
@@ -597,7 +609,7 @@
     escaped = [escaped stringByReplacingOccurrencesOfString:@"\n" withString:@"\\n"];
     escaped = [escaped stringByReplacingOccurrencesOfString:@"\r" withString:@""];
     
-    NSString *js = [NSString stringWithFormat:@"window.macAmp && window.macAmp.addTracksBatchFromNative('%@');", escaped];
+    NSString *js = [NSString stringWithFormat:@"(window.toolNAmp || window.macAmp) && (window.toolNAmp || window.macAmp).addTracksBatchFromNative('%@');", escaped];
     dispatch_async(dispatch_get_main_queue(), ^{
         [self.webView evaluateJavaScript:js completionHandler:nil];
     });
@@ -615,15 +627,15 @@
         title = [[parts subarrayWithRange:NSMakeRange(1, parts.count - 1)] componentsJoinedByString:@" - "];
     }
     
-    // Convert to macamp-audio:// local streaming scheme
-    NSString *audioURL = [NSString stringWithFormat:@"macamp-audio://local%@", [url path]];
+    // Convert to toolnamp-audio:// local streaming scheme
+    NSString *audioURL = [NSString stringWithFormat:@"toolnamp-audio://local%@", [url path]];
     
     NSString *escapedTitle = [title stringByReplacingOccurrencesOfString:@"'" withString:@"\\'"];
     NSString *escapedArtist = [artist stringByReplacingOccurrencesOfString:@"'" withString:@"\\'"];
     NSString *escapedPath = [audioURL stringByReplacingOccurrencesOfString:@"'" withString:@"\\'"];
     
     NSString *js = [NSString stringWithFormat:
-                    @"window.macAmp && window.macAmp.addTrackFromNative('%@', '%@', '%@', '%@');",
+                    @"(window.toolNAmp || window.macAmp) && (window.toolNAmp || window.macAmp).addTrackFromNative('%@', '%@', '%@', '%@');",
                     escapedTitle, escapedArtist, escapedPath, [[url pathExtension] uppercaseString]];
                     
     dispatch_async(dispatch_get_main_queue(), ^{

@@ -1,11 +1,11 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace "com.toolnplay.macamp"
+    namespace "com.toolnplay.toolnamp"
     compileSdkVersion 34
 
     defaultConfig {
-        applicationId "com.toolnplay.macamp"
+        applicationId "com.toolnplay.toolnamp"
         minSdkVersion 23
         targetSdkVersion 34
         versionCode 1
