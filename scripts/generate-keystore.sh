@@ -4,6 +4,8 @@ set -e
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 KEYSTORE="$DIR/android/toolnamp-release.keystore"
 
+export PATH="/opt/homebrew/opt/openjdk@17/bin:/opt/homebrew/opt/openjdk/bin:$PATH"
+
 echo "=== ToolNAmp Android Release Keystore Utility ==="
 
 if [ -f "$KEYSTORE" ]; then

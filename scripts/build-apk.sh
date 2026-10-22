@@ -4,6 +4,15 @@ set -e
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 cd "$DIR"
 
+if [ -d "/opt/homebrew/opt/openjdk@17" ]; then
+  export JAVA_HOME="/opt/homebrew/opt/openjdk@17"
+  export PATH="$JAVA_HOME/bin:$PATH"
+fi
+
+if [ -d "$HOME/Library/Android/sdk" ]; then
+  export ANDROID_HOME="$HOME/Library/Android/sdk"
+fi
+
 echo "=== Preparing ToolNAmp Android Project & APK Assets ==="
 
 ASSETS_DIR="$DIR/android/app/src/main/assets/web"

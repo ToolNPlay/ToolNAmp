@@ -24,13 +24,11 @@ calc_sha256() {
 calc_sha256 "$BUILD_DIR/ToolNAmp.dmg"
 
 # 2. Android APK
-calc_sha256 "$DIR/android/app/build/outputs/apk/release/app-release.apk"
-calc_sha256 "$DIR/android/app/build/outputs/apk/debug/app-debug.apk"
 calc_sha256 "$BUILD_DIR/ToolNAmp.apk"
 
-# 3. Windows Exe / Zip
+# 3. Windows Exe / Portable
 calc_sha256 "$BUILD_DIR/ToolNAmp-Setup.exe"
-calc_sha256 "$BUILD_DIR/ToolNAmp-win32-x64.zip"
+calc_sha256 "$BUILD_DIR/ToolNAmp-Portable.exe"
 
 echo ""
 echo "Checksums saved to: $OUTPUT_FILE"

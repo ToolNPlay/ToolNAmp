@@ -5,8 +5,10 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Audio](https://img.shields.io/badge/Audio-WebAudio%20%2B%20DSP%20Engine-cyan.svg)](https://toolnplay.com)
 
-> **Developed by**: [ToolNPlay.com](https://toolnplay.com)  
-> **Authors**: **Pardeep Kumar & Harsh Suman**  
+> **Developed by**: [ToolNPlay.com](https://toolnplay.com) • [GitHub](https://github.com/toolnplay)  
+> **Authors**:  
+> - **Pardeep Kumar** — [LinkedIn](https://www.linkedin.com/in/pardeeppatel/) • [GitHub](https://github.com/pardeeppatel)  
+> - **Harsh Suman** — [LinkedIn](https://www.linkedin.com/in/harshsuman/)  
 > **Target Formats**: macOS (`.dmg`), Windows (`.exe`), Android (`.apk`)
 
 **ToolNAmp** is an ultra-fast, minimalistic, yet feature-packed offline music player inspired by the legendary aesthetics and tactile experience of **Winamp**, re-engineered for modern platforms with 25 themes, a 10-band graphic equalizer, 5 real-time 60 FPS audio visualizers, DSP effects rack, window shading, and persistent playback history.
@@ -26,11 +28,12 @@
 
 ToolNAmp is built from a single unified codebase with native platform bindings:
 
-| Platform | Format | Build Command | Output Location |
-| :--- | :--- | :--- | :--- |
-| **macOS** | `.dmg` installer & `.app` | `./scripts/build.sh && ./scripts/create-dmg.sh` | `build/ToolNAmp.dmg` (~1.7 MB) |
-| **Windows** | `.exe` installer & portable | `npm run build:win` or `scripts/build-win.bat` | `dist/ToolNAmp Setup 1.0.0.exe` |
-| **Android** | `.apk` package | `./scripts/build-apk.sh` or Android Studio | `android/app/build/outputs/apk/` |
+| Platform | Format | File | Size | Build Command | Output Location |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **macOS** | `.dmg` Installer & `.app` | `ToolNAmp.dmg` | **1.3 MB** | `./scripts/build.sh && ./scripts/create-dmg.sh` | `build/ToolNAmp.dmg` |
+| **Windows** | `.exe` NSIS Installer | `ToolNAmp-Setup.exe` | **74 MB** | `npm run build:win` | `build/ToolNAmp-Setup.exe` |
+| **Windows** | `.exe` Portable Executable | `ToolNAmp-Portable.exe` | **74 MB** | `npm run build:win:portable` | `build/ToolNAmp-Portable.exe` |
+| **Android** | `.apk` Release Signed | `ToolNAmp.apk` | **8.9 MB** | `./scripts/build-apk.sh` | `build/ToolNAmp.apk` |
 
 ---
 
@@ -191,7 +194,10 @@ shasum -a 256 ToolNAmp.apk
 
 Official release hashes:
 ```text
-ToolNAmp.dmg : 20583f8e6f501f800be88f461c30cbb08c36ecd3bd8c24ec62fdf97e2e7303c2
+20583f8e6f501f800be88f461c30cbb08c36ecd3bd8c24ec62fdf97e2e7303c2  ToolNAmp.dmg
+fc180d313808ce3b32986342fff555a364d3da44597ed1863ca04de38ee0a084  ToolNAmp-Setup.exe
+8a7de6d6e31c429a6684b17d1db434e124c2730c50814890a316f44cc9eb38a0  ToolNAmp-Portable.exe
+04763e6f5a8d60f82cde37dbc5f4f81c71a7eb06546ca8c33c64037aa6b16cd3  ToolNAmp.apk
 ```
 
 ### 2. macOS Gatekeeper Verification
@@ -217,6 +223,8 @@ keytool -printcert -jarfile ToolNAmp.apk
 Key attributes:
 - **Developer**: ToolNPlay.com (Pardeep Kumar & Harsh Suman)
 - **Algorithm**: RSA 2048-bit with SHA-256 digest
+- **Certificate SHA-256 Fingerprint**: `db:fa:89:6a:97:d8:fe:87:4f:93:24:d5:1b:b9:b3:a3:ca:00:a8:86:8f:89:81:b3:0c:b0:d3:4a:94:0f:89:02`
+- **Certificate SHA-1 Fingerprint**: `2a:a8:e3:1c:e2:a4:27:a6:c7:b5:1a:2e:4a:8b:76:7c:06:4a:b0:e3`
 
 ---
 
@@ -294,7 +302,8 @@ ToolNAmp/
 
 ## 📜 License & Credits
 
-Developed with ❤️ by **[ToolNPlay.com](https://toolnplay.com)**  
-Authors: **Pardeep Kumar & Harsh Suman**
+Developed with ❤️ by **[ToolNPlay.com](https://toolnplay.com)** ([GitHub](https://github.com/toolnplay))  
+- **Pardeep Kumar**: [LinkedIn](https://www.linkedin.com/in/pardeeppatel/) • [GitHub](https://github.com/pardeeppatel)  
+- **Harsh Suman**: [LinkedIn](https://www.linkedin.com/in/harshsuman/)  
 
 Released under the **[MIT License](LICENSE)**. Open source and free for personal and commercial use.

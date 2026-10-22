@@ -5,9 +5,20 @@
   "main": "electron/main.js",
   "homepage": "https://ToolNPlay.com",
   "author": {
-    "name": "Pardeep Kumar & Harsh Suman",
-    "url": "https://ToolNPlay.com"
+    "name": "Pardeep Kumar",
+    "url": "https://www.linkedin.com/in/pardeeppatel/"
   },
+  "contributors": [
+    {
+      "name": "Pardeep Kumar",
+      "url": "https://www.linkedin.com/in/pardeeppatel/",
+      "github": "https://github.com/pardeeppatel"
+    },
+    {
+      "name": "Harsh Suman",
+      "url": "https://www.linkedin.com/in/harshsuman/"
+    }
+  ],
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -51,11 +62,15 @@
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         },
         {
           "target": "portable",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ],
       "icon": "assets/icon.png"
@@ -70,7 +85,9 @@
     "mac": {
       "category": "public.app-category.music",
       "icon": "assets/AppIcon.icns",
-      "target": ["dmg"]
+      "target": [
+        "dmg"
+      ]
     }
   },
   "devDependencies": {
