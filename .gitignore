@@ -46,3 +46,7 @@ captures/
 collection.json
 *.log
 /tmp/
+
+# Private Website & Landing Page (Hosted on toolnplay.com)
+website/
+docs/
