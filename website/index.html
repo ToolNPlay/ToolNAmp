@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ToolNAmp — High-Fidelity Retro Music Player for macOS, Windows & Android | ToolNPlay</title>
+  <meta name="description" content="ToolNAmp is an ultra-lightweight, high-fidelity offline retro music player inspired by Winamp. Features 25 themes, 10-band equalizer, 5 real-time 60fps visualizers, and background audio for macOS, Windows, and Android.">
+  <meta name="keywords" content="ToolNAmp, Winamp, music player, retro audio player, equalizer, visualizer, toolnplay, open source, pardeep kumar, harsh suman">
+  <meta property="og:title" content="ToolNAmp — High-Fidelity Retro Music Player">
+  <meta property="og:description" content="Winamp nostalgia re-engineered for macOS (1.3 MB), Windows (798 KB), and Android (8.9 MB). 100% Free & Open Source.">
+  <meta property="og:image" content="icon.png">
+  <meta property="og:url" content="https://toolnplay.com/software/toolnamp">
+  <link rel="icon" type="image/png" href="icon.png">
+
+  <style>
+    :root {
+      --bg: #090b10;
+      --bg-card: #12151f;
+      --bg-card-hover: #171b28;
+      --border: #23283b;
+      --accent: #00e5ff;
+      --accent-glow: rgba(0, 229, 255, 0.35);
+      --amber: #ffb300;
+      --amber-glow: rgba(255, 179, 0, 0.3);
+      --green: #00e676;
+      --text: #f0f3fa;
+      --text-muted: #8c96ac;
+      --font-mono: 'SF Mono', Menlo, Consolas, Monaco, monospace;
+      --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* Ambient background gradient grid */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: 
+        radial-gradient(circle at 20% 20%, rgba(0, 229, 255, 0.08) 0%, transparent 45%),
+        radial-gradient(circle at 80% 80%, rgba(255, 179, 0, 0.06) 0%, transparent 50%),
+        linear-gradient(to bottom, rgba(9, 11, 16, 0.8) 0%, var(--bg) 100%);
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    /* Navigation */
+    header {
+      position: sticky;
+      top: 0;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      background: rgba(9, 11, 16, 0.8);
+      border-bottom: 1px solid var(--border);
+      z-index: 100;
+      padding: 14px 24px;
+    }
+
+    .nav-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: #fff;
+    }
+
+    .logo-img {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      box-shadow: 0 0 16px var(--accent-glow);
+    }
+
+    .brand-title {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #fff 30%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-org {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--amber);
+      font-weight: 700;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .nav-link {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    .nav-link:hover {
+      color: #fff;
+    }
+
+    .btn-github {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #1e2333;
+      color: #fff;
+      border: 1px solid #333a52;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .btn-github:hover {
+      background: #282f45;
+      border-color: var(--accent);
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    /* Hero Section */
+    .hero {
+      max-width: 1200px;
+      margin: 60px auto 40px;
+      padding: 0 24px;
+      text-align: center;
+    }
+
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0, 229, 255, 0.1);
+      border: 1px solid rgba(0, 229, 255, 0.3);
+      color: var(--accent);
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 24px;
+      box-shadow: 0 0 16px rgba(0, 229, 255, 0.15);
+    }
+
+    .hero-h1 {
+      font-size: 56px;
+      font-weight: 900;
+      line-height: 1.1;
+      letter-spacing: -1.5px;
+      margin-bottom: 20px;
+    }
+
+    .hero-h1 span.gradient {
+      background: linear-gradient(135deg, #ffffff 10%, #00e5ff 60%, #ffb300 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-p {
+      max-width: 720px;
+      margin: 0 auto 36px;
+      font-size: 18px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* Download CTAs */
+    .cta-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 16px;
+      margin-bottom: 40px;
+    }
+
+    .btn-download {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: linear-gradient(135deg, #1b2030 0%, #151824 100%);
+      border: 1px solid var(--border);
+      padding: 14px 24px;
+      border-radius: 12px;
+      text-decoration: none;
+      color: #fff;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-download::before {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%; width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+      transition: left 0.6s ease;
+    }
+
+    .btn-download:hover::before {
+      left: 100%;
+    }
+
+    .btn-download:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    .btn-download.mac:hover {
+      border-color: #00e5ff;
+      box-shadow: 0 12px 28px rgba(0, 229, 255, 0.25);
+    }
+
+    .btn-download.win:hover {
+      border-color: #ffb300;
+      box-shadow: 0 12px 28px rgba(255, 179, 0, 0.25);
+    }
+
+    .btn-download.android:hover {
+      border-color: #00e676;
+      box-shadow: 0 12px 28px rgba(0, 230, 118, 0.25);
+    }
+
+    .btn-icon {
+      font-size: 26px;
+    }
+
+    .btn-text-group {
+      text-align: left;
+    }
+
+    .btn-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .btn-meta {
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .btn-badge {
+      background: rgba(255, 255, 255, 0.12);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      font-size: 11px;
+    }
+
+    /* Live Interactive Canvas Visualizer Banner */
+    .vis-banner {
+      max-width: 1000px;
+      margin: 0 auto 70px;
+      background: #06070a;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+      position: relative;
+    }
+
+    .vis-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding: 0 6px;
+    }
+
+    .vis-title {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--accent);
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .pulsing-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--green);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--green);
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 0.4; }
+      50% { opacity: 1; }
+      100% { opacity: 0.4; }
+    }
+
+    #visCanvas {
+      width: 100%;
+      height: 180px;
+      border-radius: 8px;
+      background: #020305;
+      display: block;
+      cursor: pointer;
+    }
+
+    .vis-caption {
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      text-align: center;
+    }
+
+    /* Feature Grid */
+    .section-title {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .section-title h2 {
+      font-size: 36px;
+      font-weight: 800;
+      letter-spacing: -0.8px;
+      margin-bottom: 12px;
+    }
+
+    .section-title p {
+      color: var(--text-muted);
+      font-size: 16px;
+    }
+
+    .features-grid {
+      max-width: 1200px;
+      margin: 0 auto 80px;
+      padding: 0 24px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+    }
+
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px 24px;
+      transition: all 0.25s;
+    }
+
+    .feature-card:hover {
+      background: var(--bg-card-hover);
+      border-color: rgba(0, 229, 255, 0.4);
+      transform: translateY(-4px);
+    }
+
+    .card-icon {
+      font-size: 32px;
+      margin-bottom: 16px;
+      display: inline-block;
+    }
+
+    .card-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: #fff;
+    }
+
+    .card-desc {
+      color: var(--text-muted);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    /* Comparison Table */
+    .spec-table-container {
+      max-width: 1000px;
+      margin: 0 auto 80px;
+      padding: 0 24px;
+    }
+
+    .spec-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--bg-card);
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .spec-table th, .spec-table td {
+      padding: 16px 20px;
+      text-align: left;
+      font-size: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .spec-table th {
+      background: #171b28;
+      color: #fff;
+      font-weight: 700;
+    }
+
+    .spec-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .spec-table td.highlight {
+      color: var(--accent);
+      font-weight: 700;
+      font-family: var(--font-mono);
+    }
+
+    /* Checksums & Verification Card */
+    .checksum-card {
+      max-width: 1000px;
+      margin: 0 auto 80px;
+      padding: 32px;
+      background: #06070a;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      font-family: var(--font-mono);
+    }
+
+    .checksum-card h3 {
+      font-size: 18px;
+      color: #fff;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .checksum-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+      font-size: 13px;
+    }
+
+    .checksum-row:last-child {
+      border-bottom: none;
+    }
+
+    .checksum-hash {
+      color: var(--accent);
+      word-break: break-all;
+    }
+
+    /* Authors & Attribution */
+    .authors-card {
+      max-width: 1000px;
+      margin: 0 auto 80px;
+      padding: 36px 24px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      text-align: center;
+    }
+
+    .authors-grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 32px;
+      margin-top: 24px;
+    }
+
+    .author-item {
+      background: #191e2e;
+      border: 1px solid #283049;
+      border-radius: 12px;
+      padding: 20px 28px;
+      min-width: 260px;
+      text-align: left;
+    }
+
+    .author-name {
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+
+    .author-role {
+      font-size: 12px;
+      color: var(--amber);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 14px;
+    }
+
+    .author-links {
+      display: flex;
+      gap: 12px;
+    }
+
+    .author-links a {
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      transition: color 0.2s;
+    }
+
+    .author-links a:hover {
+      text-decoration: underline;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 40px 24px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    footer a {
+      color: var(--text);
+      text-decoration: none;
+      margin: 0 10px;
+    }
+
+    footer a:hover {
+      color: var(--accent);
+    }
+
+    @media (max-width: 768px) {
+      .hero-h1 { font-size: 38px; }
+      .hero-p { font-size: 16px; }
+      .nav-links { display: none; }
+      .cta-container { flex-direction: column; align-items: stretch; }
+      .btn-download { justify-content: center; }
+      .checksum-row { flex-direction: column; align-items: flex-start; gap: 4px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="nav-container">
+      <a href="https://toolnplay.com" class="logo-group">
+        <img src="icon.png" alt="ToolNAmp Logo" class="logo-img">
+        <div>
+          <div class="brand-title">ToolNAmp</div>
+          <div class="brand-org">A ToolNPlay Project</div>
+        </div>
+      </a>
+      <nav class="nav-links">
+        <a href="#features" class="nav-link">Features</a>
+        <a href="#downloads" class="nav-link">Downloads</a>
+        <a href="#checksums" class="nav-link">Checksums</a>
+        <a href="#authors" class="nav-link">Authors</a>
+        <a href="https://github.com/toolnplay/toolnamp" target="_blank" class="btn-github">
+          <svg height="16" width="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+          </svg>
+          Star on GitHub
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="badge-pill">⚡ High-Fidelity Retro Music Player</div>
+    <h1 class="hero-h1">
+      The Classic Soul of Winamp.<br>
+      <span class="gradient">Re-Engineered for 2026.</span>
+    </h1>
+    <p class="hero-p">
+      Lightweight, offline, and beautifully crafted for <b>macOS</b>, <b>Windows</b>, and <b>Android</b>. 
+      Featuring 25 festival & retro skins, 10-band graphic equalizer, 5 real-time 60 FPS visualizers, and screen-locked background playback.
+    </p>
+
+    <!-- Download Buttons -->
+    <div class="cta-container" id="downloads">
+      <!-- macOS DMG -->
+      <a href="https://github.com/toolnplay/toolnamp/releases/latest/download/ToolNAmp.dmg" class="btn-download mac">
+        <span class="btn-icon">🍏</span>
+        <div class="btn-text-group">
+          <div class="btn-title">Download for macOS</div>
+          <div class="btn-meta">
+            <span>.dmg installer</span> • <span class="btn-badge">1.3 MB</span> • <span>Apple Silicon / Intel</span>
+          </div>
+        </div>
+      </a>
+
+      <!-- Windows Lightweight Zip -->
+      <a href="https://github.com/toolnplay/toolnamp/releases/latest/download/ToolNAmp-Windows-Lightweight.zip" class="btn-download win">
+        <span class="btn-icon">🪟</span>
+        <div class="btn-text-group">
+          <div class="btn-title">Download for Windows (Light)</div>
+          <div class="btn-meta">
+            <span>Portable .zip</span> • <span class="btn-badge">798 KB</span> • <span>Win 10 / 11</span>
+          </div>
+        </div>
+      </a>
+
+      <!-- Android APK -->
+      <a href="https://github.com/toolnplay/toolnamp/releases/latest/download/ToolNAmp.apk" class="btn-download android">
+        <span class="btn-icon">🤖</span>
+        <div class="btn-text-group">
+          <div class="btn-title">Download for Android</div>
+          <div class="btn-meta">
+            <span>.apk package</span> • <span class="btn-badge">8.9 MB</span> • <span>Android 6.0+</span>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <!-- Fallback Offline Windows Installer link -->
+    <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 40px;">
+      Need a fully self-contained offline installer? 
+      <a href="https://github.com/toolnplay/toolnamp/releases/latest/download/ToolNAmp-Setup.exe" style="color: var(--amber); text-decoration: underline;">
+        Download ToolNAmp Offline Setup (74 MB)
+      </a>
+    </div>
+
+    <!-- Live Interactive Visualizer Canvas Preview -->
+    <div class="vis-banner">
+      <div class="vis-header">
+        <div class="vis-title">
+          <div class="pulsing-dot"></div>
+          <span>LIVE 60 FPS AUDIO VISUALIZER ENGINE</span>
+        </div>
+        <div style="font-size: 11px; color: var(--amber); font-weight: 700;">CLICK OR MOVE MOUSE OVER CANVAS</div>
+      </div>
+      <canvas id="visCanvas" width="960" height="180"></canvas>
+      <div class="vis-caption">
+        [ SPECTRUM ANALYZER • OSCILLOSCOPE • 3D NEON BARS • RADIAL CORE • WARP SPEED STARFIELD ]
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Grid -->
+  <section class="section-title" id="features">
+    <h2>Built Without Compromise</h2>
+    <p>Every feature you loved from the golden era of desktop audio, modernized for speed and battery life.</p>
+  </section>
+
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="card-icon">🎛️</div>
+      <div class="card-title">10-Band Graphic Equalizer</div>
+      <div class="card-desc">
+        Audiophile-grade biquad filters spanning 32 Hz to 16 kHz. Includes 13 tuned presets (Rock, Pop, Bass Boost, Club, Jazz), live cubic spline frequency response curve, and master preamp control.
+      </div>
+    </div>
+
+    <div class="feature-card">
+      <div class="card-icon">🌌</div>
+      <div class="card-title">5 Real-Time 60 FPS Visualizers</div>
+      <div class="card-desc">
+        Classic Winamp LED spectrum with dropping peak markers, glowing phosphor green oscilloscope, 3D neon floor bars, 360° radial burst, and audio-reactive warp speed starfield.
+      </div>
+    </div>
+
+    <div class="feature-card">
+      <div class="card-icon">🎨</div>
+      <div class="card-title">25 Curated Skins & Festival Themes</div>
+      <div class="card-desc">
+        Celebrate festivals in style with Diwali, Holi, New Year, Christmas, Dussehra, and Shivratri themes, alongside computing classics like Winamp 1998, The Matrix, Game Boy, and Amber CRT.
+      </div>
+    </div>
+
+    <div class="feature-card">
+      <div class="card-icon">📱</div>
+      <div class="card-title">Screen-Locked Mobile Audio</div>
+      <div class="card-desc">
+        Runs uninterrupted in the background when your phone screen is locked. Full lock-screen transport controls, headphone button integration, and MediaStore automatic music scanning.
+      </div>
+    </div>
+
+    <div class="feature-card">
+      <div class="card-icon">🔍</div>
+      <div class="card-title">1-Click Desktop Library Auto-Scan</div>
+      <div class="card-desc">
+        Instantly indexes your local Music, Desktop, and Downloads folders recursively for all MP3, WAV, FLAC, M4A, and AAC files without freezing the player.
+      </div>
+    </div>
+
+    <div class="feature-card">
+      <div class="card-icon">🪟</div>
+      <div class="card-title">Window Shade & Always on Top</div>
+      <div class="card-desc">
+        Press <code>W</code> to collapse the player into an ultra-compact 48px horizontal desk bar with live mini-visualizer, or press <code>T</code> to pin it above other windows while coding.
+      </div>
+    </div>
+  </div>
+
+  <!-- Size & Architecture Comparison Table -->
+  <section class="spec-table-container">
+    <div class="section-title">
+      <h2>Native Footprint vs Legacy Players</h2>
+      <p>Why ToolNAmp runs faster, starts quicker, and takes less space.</p>
+    </div>
+    <table class="spec-table">
+      <thead>
+        <tr>
+          <th>Platform</th>
+          <th>Package Format</th>
+          <th>Download Size</th>
+          <th>RAM Consumption</th>
+          <th>Engine Technology</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><b>macOS</b></td>
+          <td>Native Cocoa DMG</td>
+          <td class="highlight">1.3 MB</td>
+          <td>~25 MB</td>
+          <td>Native Objective-C + WebKit WKWebView</td>
+        </tr>
+        <tr>
+          <td><b>Windows (Lightweight)</b></td>
+          <td>Native Win32 Portable</td>
+          <td class="highlight">798 KB</td>
+          <td>~35 MB</td>
+          <td>Win32 C++ + Microsoft Edge WebView2</td>
+        </tr>
+        <tr>
+          <td><b>Android</b></td>
+          <td>Signed APK</td>
+          <td class="highlight">8.9 MB</td>
+          <td>~30 MB</td>
+          <td>Native Android Java + System WebView</td>
+        </tr>
+        <tr>
+          <td><b>Windows (Offline Setup)</b></td>
+          <td>Self-Contained NSIS</td>
+          <td>74 MB</td>
+          <td>~110 MB</td>
+          <td>Standalone Chromium + Node.js (Electron)</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Cryptographic Checksums Card -->
+  <section class="checksum-card" id="checksums">
+    <h3>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      </svg>
+      Official SHA-256 Release Checksums
+    </h3>
+    <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px;">
+      Verify the cryptographic authenticity of your downloaded files:
+    </p>
+
+    <div class="checksum-row">
+      <span><b>ToolNAmp.dmg</b> (macOS)</span>
+      <span class="checksum-hash">20583f8e6f501f800be88f461c30cbb08c36ecd3bd8c24ec62fdf97e2e7303c2</span>
+    </div>
+
+    <div class="checksum-row">
+      <span><b>ToolNAmp-Windows-Lightweight.zip</b></span>
+      <span class="checksum-hash">9253d6b18ecc30724711de03c7d7fcbf9a9f8a6965e18ac03318c9bc42113f83</span>
+    </div>
+
+    <div class="checksum-row">
+      <span><b>ToolNAmp.apk</b> (Android)</span>
+      <span class="checksum-hash">04763e6f5a8d60f82cde37dbc5f4f81c71a7eb06546ca8c33c64037aa6b16cd3</span>
+    </div>
+
+    <div class="checksum-row">
+      <span><b>ToolNAmp-Setup.exe</b> (Windows Full)</span>
+      <span class="checksum-hash">fc180d313808ce3b32986342fff555a364d3da44597ed1863ca04de38ee0a084</span>
+    </div>
+
+    <div style="margin-top: 20px; font-size: 12px; color: var(--text-muted);">
+      Verify in Terminal: <code>shasum -a 256 filename</code>
+    </div>
+  </section>
+
+  <!-- Authors & Team -->
+  <section class="authors-card" id="authors">
+    <h2 style="font-size: 28px; font-weight: 800; color: #fff;">Developed with ❤️ at ToolNPlay</h2>
+    <p style="color: var(--text-muted); margin-top: 8px;">
+      An open-source software project engineered by passionate developers.
+    </p>
+
+    <div class="authors-grid">
+      <!-- Pardeep Kumar -->
+      <div class="author-item">
+        <div class="author-name">Pardeep Kumar</div>
+        <div class="author-role">Creator & Lead Architect</div>
+        <div class="author-links">
+          <a href="https://www.linkedin.com/in/pardeeppatel/" target="_blank">LinkedIn Profile ↗</a>
+          <a href="https://github.com/pardeeppatel" target="_blank">GitHub Profile ↗</a>
+        </div>
+      </div>
+
+      <!-- Harsh Suman -->
+      <div class="author-item">
+        <div class="author-name">Harsh Suman</div>
+        <div class="author-role">Co-Author & Developer</div>
+        <div class="author-links">
+          <a href="https://www.linkedin.com/in/harshsuman/" target="_blank">LinkedIn Profile ↗</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div style="margin-bottom: 16px;">
+      <a href="https://toolnplay.com">ToolNPlay.com</a> •
+      <a href="https://github.com/toolnplay/toolnamp">GitHub Repository</a> •
+      <a href="https://github.com/toolnplay/toolnamp/releases">All Releases</a> •
+      <a href="https://github.com/toolnplay/toolnamp/blob/main/LICENSE">MIT License</a>
+    </div>
+    <div>
+      Copyright © 2026 <b>ToolNPlay.com</b>. Designed & Authored by Pardeep Kumar & Harsh Suman.
+    </div>
+  </footer>
+
+  <!-- Visualizer Canvas Interactive Animation Script -->
+  <script>
+    const canvas = document.getElementById('visCanvas');
+    const ctx = canvas.getContext('2d');
+    let width = canvas.width = canvas.offsetWidth;
+    let height = canvas.height = canvas.offsetHeight;
+    let mouseX = width / 2;
+    let mouseY = height / 2;
+
+    window.addEventListener('resize', () => {
+      width = canvas.width = canvas.offsetWidth;
+      height = canvas.height = canvas.offsetHeight;
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      mouseX = e.clientX - rect.left;
+      mouseY = e.clientY - rect.top;
+    });
+
+    const numBars = 48;
+    const bars = new Array(numBars).fill(0);
+    const peaks = new Array(numBars).fill(0);
+
+    function renderVis(time) {
+      ctx.fillStyle = '#020305';
+      ctx.fillRect(0, 0, width, height);
+
+      const barWidth = width / numBars;
+      const t = time * 0.003;
+      const mouseFactor = (mouseX / width) * 1.5;
+
+      for (let i = 0; i < numBars; i++) {
+        const sin1 = Math.sin(t + i * 0.25);
+        const sin2 = Math.cos(t * 0.7 + i * 0.15);
+        const distToMouse = Math.abs((i / numBars) * width - mouseX);
+        const mouseBoost = Math.max(0, 1 - distToMouse / 180) * 0.6;
+
+        let targetHeight = ((sin1 * 0.5 + 0.5) * 0.6 + (sin2 * 0.5 + 0.5) * 0.4 + mouseBoost) * (height * 0.85);
+        bars[i] += (targetHeight - bars[i]) * 0.2;
+
+        if (bars[i] > peaks[i]) {
+          peaks[i] = bars[i];
+        } else {
+          peaks[i] -= 1.2;
+        }
+
+        const h = Math.max(4, bars[i]);
+        const x = i * barWidth;
+        const y = height - h;
+
+        // Gradient coloring
+        const grad = ctx.createLinearGradient(0, height, 0, y);
+        grad.addColorStop(0, '#00e676');
+        grad.addColorStop(0.65, '#00e5ff');
+        grad.addColorStop(1, '#ffb300');
+
+        ctx.fillStyle = grad;
+        ctx.fillRect(x + 1.5, y, barWidth - 3, h);
+
+        // Peak drop dot
+        const peakY = height - Math.max(peaks[i], h);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(x + 1.5, peakY - 2, barWidth - 3, 2);
+      }
+
+      requestAnimationFrame(renderVis);
+    }
+
+    requestAnimationFrame(renderVis);
+  </script>
+</body>
+</html>
