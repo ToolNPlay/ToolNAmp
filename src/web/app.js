@@ -223,8 +223,7 @@ class ToolNAmpApp {
     });
 
     // Transport buttons
-    document.getElementById('btnPlay')?.addEventListener('click', () => this.play());
-    document.getElementById('btnPause')?.addEventListener('click', () => this.pause());
+    document.getElementById('btnPlayPause')?.addEventListener('click', () => this.togglePlayPause());
     document.getElementById('btnStop')?.addEventListener('click', () => this.stop());
     document.getElementById('btnPrev')?.addEventListener('click', () => this.prevTrack());
     document.getElementById('btnNext')?.addEventListener('click', () => this.nextTrack());
@@ -684,15 +683,17 @@ class ToolNAmpApp {
     // Load in audio engine
     window.audioEngine.setSource(track.url);
 
-    // Update Marquee & Badges
+    // Update Marquee & Badges - Clean song title display without developer credits
     const marquee = document.getElementById('trackMarquee');
     const miniMarquee = document.getElementById('miniMarquee');
     const theaterTitle = document.getElementById('visTheaterTitle');
-    const text = `⚡ ${index + 1}. ${track.title} - ${track.artist} (${track.sampleRate || '44.1 kHz'}) • Developed by ToolNPlay.com (Authors: Pardeep Kumar & Harsh Suman) ⚡`;
+    const trackArtist = (track.artist && track.artist !== 'Local Artist' && track.artist !== 'Local Music') ? track.artist : '';
+    const trackDisplay = trackArtist ? `${trackArtist} - ${track.title}` : track.title;
+    const text = `*** ${index + 1}. ${trackDisplay} (${track.bitrate || '320 kbps'} / ${track.sampleRate || '44.1 kHz'}) ***`;
     
     if (marquee) marquee.textContent = text;
-    if (miniMarquee) miniMarquee.textContent = `${index + 1}. ${track.title} • ToolNPlay.com (Pardeep Kumar & Harsh Suman)`;
-    if (theaterTitle) theaterTitle.textContent = `${track.artist} - ${track.title}`;
+    if (miniMarquee) miniMarquee.textContent = `${index + 1}. ${trackDisplay}`;
+    if (theaterTitle) theaterTitle.textContent = trackDisplay;
 
     document.getElementById('badgeKbps').textContent = track.bitrate || '320 KBPS';
     document.getElementById('badgeKhz').textContent = track.sampleRate || '44.1 KHZ';
@@ -715,13 +716,16 @@ class ToolNAmpApp {
       this.openFilePicker();
       return;
     }
+    if (this.playlist[this.currentIndex] && (!window.audioEngine.audioElement.src || window.audioEngine.audioElement.src === window.location.href)) {
+      window.audioEngine.setSource(this.playlist[this.currentIndex].url);
+    }
     window.audioEngine.play().then(() => {
       this.isPlaying = true;
       this.isPaused = false;
       this.updateTransportLEDs();
       this.saveCollection();
     }).catch(err => {
-      console.warn("Audio play gesture required:", err);
+      console.warn("Audio play error:", err ? (err.name + ': ' + err.message) : err);
     });
   }
 
@@ -785,13 +789,23 @@ class ToolNAmpApp {
     const pauseLed = document.getElementById('ledPause');
     const stopLed = document.getElementById('ledStop');
     const miniPlay = document.getElementById('miniPlay');
+    const playPauseIcon = document.getElementById('playPauseIcon');
+    const btnPlayPause = document.getElementById('btnPlayPause');
 
     playLed?.classList.toggle('active', this.isPlaying);
     pauseLed?.classList.toggle('active', this.isPaused);
     stopLed?.classList.toggle('active', !this.isPlaying && !this.isPaused);
 
+    const iconStr = this.isPlaying ? '❚❚' : '▶';
+    if (playPauseIcon) {
+      playPauseIcon.textContent = iconStr;
+    }
+    if (btnPlayPause) {
+      btnPlayPause.setAttribute('title', this.isPlaying ? 'Pause (Space / C)' : 'Play (Space / X)');
+      btnPlayPause.classList.toggle('is-playing', this.isPlaying);
+    }
     if (miniPlay) {
-      miniPlay.textContent = this.isPlaying ? '❚❚' : '▶';
+      miniPlay.textContent = iconStr;
     }
   }
 
@@ -1324,4 +1338,5 @@ class ToolNAmpApp {
 // Global App Initialization
 window.addEventListener('DOMContentLoaded', () => {
   window.toolNAmp = window.macAmp = new ToolNAmpApp();
+  window.toolNAmp.sendNative('log', { message: 'ToolNAmp DOMContentLoaded and App initialized!' });
 });

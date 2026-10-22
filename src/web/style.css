@@ -1620,6 +1620,16 @@ body {
   color: var(--accent-primary);
 }
 
+.winamp-btn.play-pause-btn {
+  width: 38px;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.winamp-btn.play-pause-btn.is-playing {
+  color: var(--accent-secondary);
+}
+
 .winamp-btn.eject {
   color: var(--accent-secondary);
 }

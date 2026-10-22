@@ -21,6 +21,23 @@
         return;
     }
     
+    NSString *method = urlSchemeTask.request.HTTPMethod ?: @"GET";
+    if ([method isEqualToString:@"OPTIONS"]) {
+        NSDictionary *optionsHeaders = @{
+            @"Access-Control-Allow-Origin": @"*",
+            @"Access-Control-Allow-Methods": @"GET, HEAD, OPTIONS",
+            @"Access-Control-Allow-Headers": @"*",
+            @"Access-Control-Max-Age": @"86400"
+        };
+        NSHTTPURLResponse *response = [[NSHTTPURLResponse alloc] initWithURL:url
+                                                                  statusCode:200
+                                                                 HTTPVersion:@"HTTP/1.1"
+                                                                headerFields:optionsHeaders];
+        [urlSchemeTask didReceiveResponse:response];
+        [urlSchemeTask didFinish];
+        return;
+    }
+    
     NSString *ext = [[path pathExtension] lowercaseString];
     NSString *mimeType = @"audio/mpeg";
     if ([ext isEqualToString:@"wav"]) mimeType = @"audio/wav";
@@ -45,17 +62,15 @@
         if (end >= fileSize) end = fileSize - 1;
         long long length = end - start + 1;
         
-        NSFileHandle *fileHandle = [NSFileHandle fileHandleForReadingAtPath:path];
-        [fileHandle seekToFileOffset:start];
-        NSData *rangeData = [fileHandle readDataOfLength:(NSUInteger)length];
-        [fileHandle closeFile];
-        
         NSDictionary *responseHeaders = @{
             @"Content-Type": mimeType,
             @"Content-Length": [NSString stringWithFormat:@"%lld", length],
             @"Content-Range": [NSString stringWithFormat:@"bytes %lld-%lld/%lld", start, end, fileSize],
             @"Accept-Ranges": @"bytes",
-            @"Access-Control-Allow-Origin": @"*"
+            @"Access-Control-Allow-Origin": @"*",
+            @"Access-Control-Allow-Methods": @"GET, HEAD, OPTIONS",
+            @"Access-Control-Allow-Headers": @"*",
+            @"Access-Control-Expose-Headers": @"Content-Range, Content-Length, Accept-Ranges"
         };
         
         NSHTTPURLResponse *response = [[NSHTTPURLResponse alloc] initWithURL:url
@@ -63,23 +78,37 @@
                                                                  HTTPVersion:@"HTTP/1.1"
                                                                 headerFields:responseHeaders];
         [urlSchemeTask didReceiveResponse:response];
-        [urlSchemeTask didReceiveData:rangeData];
+        
+        if (![method isEqualToString:@"HEAD"]) {
+            NSFileHandle *fileHandle = [NSFileHandle fileHandleForReadingAtPath:path];
+            [fileHandle seekToFileOffset:start];
+            NSData *rangeData = [fileHandle readDataOfLength:(NSUInteger)length];
+            [fileHandle closeFile];
+            if (rangeData) {
+                [urlSchemeTask didReceiveData:rangeData];
+            }
+        }
         [urlSchemeTask didFinish];
     } else {
-        NSData *fullData = [NSData dataWithContentsOfFile:path options:NSDataReadingMappedIfSafe error:nil];
         NSDictionary *responseHeaders = @{
             @"Content-Type": mimeType,
             @"Content-Length": [NSString stringWithFormat:@"%lld", fileSize],
             @"Accept-Ranges": @"bytes",
-            @"Access-Control-Allow-Origin": @"*"
+            @"Access-Control-Allow-Origin": @"*",
+            @"Access-Control-Allow-Methods": @"GET, HEAD, OPTIONS",
+            @"Access-Control-Allow-Headers": @"*",
+            @"Access-Control-Expose-Headers": @"Content-Range, Content-Length, Accept-Ranges"
         };
         NSHTTPURLResponse *response = [[NSHTTPURLResponse alloc] initWithURL:url
                                                                   statusCode:200
                                                                  HTTPVersion:@"HTTP/1.1"
                                                                 headerFields:responseHeaders];
         [urlSchemeTask didReceiveResponse:response];
-        if (fullData) {
-            [urlSchemeTask didReceiveData:fullData];
+        if (![method isEqualToString:@"HEAD"]) {
+            NSData *fullData = [NSData dataWithContentsOfFile:path options:NSDataReadingMappedIfSafe error:nil];
+            if (fullData) {
+                [urlSchemeTask didReceiveData:fullData];
+            }
         }
         [urlSchemeTask didFinish];
     }
@@ -205,6 +234,24 @@
     // Script message handler
     [config.userContentController addScriptMessageHandler:self name:@"toolnamp"];
     [config.userContentController addScriptMessageHandler:self name:@"macamp"];
+    [config.userContentController addScriptMessageHandler:self name:@"consoleLog"];
+    
+    NSString *consoleShim = @"(function() {"
+    "  function send(lvl, args) {"
+    "    try {"
+    "      var msg = Array.prototype.slice.call(args).map(function(a) {"
+    "        return (typeof a === 'object') ? JSON.stringify(a) : String(a);"
+    "      }).join(' ');"
+    "      window.webkit.messageHandlers.consoleLog.postMessage({level: lvl, message: msg});"
+    "    } catch(e) {}"
+    "  }"
+    "  var origLog = console.log, origWarn = console.warn, origErr = console.error;"
+    "  console.log = function() { origLog.apply(console, arguments); send('LOG', arguments); };"
+    "  console.warn = function() { origWarn.apply(console, arguments); send('WARN', arguments); };"
+    "  console.error = function() { origErr.apply(console, arguments); send('ERROR', arguments); };"
+    "})();";
+    WKUserScript *consoleScript = [[WKUserScript alloc] initWithSource:consoleShim injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
+    [config.userContentController addUserScript:consoleScript];
     
     self.webView = [[MacAmpWebView alloc] initWithFrame:self.window.contentView.bounds configuration:config];
     [self.webView setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
@@ -287,6 +334,22 @@
     [[ctrlMenu.itemArray lastObject] setKeyEquivalentModifierMask:NSEventModifierFlagShift | NSEventModifierFlagCommand];
     [ctrlMenuItem setSubmenu:ctrlMenu];
     
+    // Equalizer Menu
+    NSMenuItem *eqMenuItem = [[NSMenuItem alloc] init];
+    [mainMenu addItem:eqMenuItem];
+    NSMenu *eqMenu = [[NSMenu alloc] initWithTitle:@"Equalizer"];
+    [eqMenu addItemWithTitle:@"Toggle EQ Power" action:@selector(menuToggleEqPower) keyEquivalent:@"e"];
+    [eqMenu addItemWithTitle:@"Reset to Flat" action:@selector(menuEqFlat) keyEquivalent:@"0"];
+    [eqMenu addItem:[NSMenuItem separatorItem]];
+    [eqMenu addItemWithTitle:@"Preset: Rock" action:@selector(menuEqRock) keyEquivalent:@"1"];
+    [eqMenu addItemWithTitle:@"Preset: Techno" action:@selector(menuEqTechno) keyEquivalent:@"2"];
+    [eqMenu addItemWithTitle:@"Preset: Full Bass" action:@selector(menuEqBass) keyEquivalent:@"3"];
+    [eqMenu addItemWithTitle:@"Preset: Vocal Booster" action:@selector(menuEqVocal) keyEquivalent:@"4"];
+    [eqMenu addItemWithTitle:@"Preset: Classical" action:@selector(menuEqClassical) keyEquivalent:@"5"];
+    [eqMenu addItemWithTitle:@"Preset: Club" action:@selector(menuEqClub) keyEquivalent:@"6"];
+    [eqMenu addItemWithTitle:@"Preset: Pop" action:@selector(menuEqPop) keyEquivalent:@"7"];
+    [eqMenuItem setSubmenu:eqMenu];
+    
     // Window Menu
     NSMenuItem *winMenuItem = [[NSMenuItem alloc] init];
     [mainMenu addItem:winMenuItem];
@@ -348,6 +411,43 @@
     [self.webView evaluateJavaScript:@"(window.toolNAmp || window.macAmp) && (window.toolNAmp || window.macAmp).toggleMiniMode()" completionHandler:nil];
 }
 
+#pragma mark - Equalizer Menu Actions
+- (void)menuToggleEqPower {
+    [self.webView evaluateJavaScript:@"document.getElementById('eqPower')?.click()" completionHandler:nil];
+}
+
+- (void)menuEqFlat {
+    [self.webView evaluateJavaScript:@"window.equalizer && window.equalizer.applyPreset('flat'); if (document.getElementById('eqPresetSelect')) document.getElementById('eqPresetSelect').value = 'flat';" completionHandler:nil];
+}
+
+- (void)menuEqRock {
+    [self.webView evaluateJavaScript:@"window.equalizer && window.equalizer.applyPreset('rock'); if (document.getElementById('eqPresetSelect')) document.getElementById('eqPresetSelect').value = 'rock';" completionHandler:nil];
+}
+
+- (void)menuEqTechno {
+    [self.webView evaluateJavaScript:@"window.equalizer && window.equalizer.applyPreset('techno'); if (document.getElementById('eqPresetSelect')) document.getElementById('eqPresetSelect').value = 'techno';" completionHandler:nil];
+}
+
+- (void)menuEqBass {
+    [self.webView evaluateJavaScript:@"window.equalizer && window.equalizer.applyPreset('bass'); if (document.getElementById('eqPresetSelect')) document.getElementById('eqPresetSelect').value = 'bass';" completionHandler:nil];
+}
+
+- (void)menuEqVocal {
+    [self.webView evaluateJavaScript:@"window.equalizer && window.equalizer.applyPreset('vocal'); if (document.getElementById('eqPresetSelect')) document.getElementById('eqPresetSelect').value = 'vocal';" completionHandler:nil];
+}
+
+- (void)menuEqClassical {
+    [self.webView evaluateJavaScript:@"window.equalizer && window.equalizer.applyPreset('classical'); if (document.getElementById('eqPresetSelect')) document.getElementById('eqPresetSelect').value = 'classical';" completionHandler:nil];
+}
+
+- (void)menuEqClub {
+    [self.webView evaluateJavaScript:@"window.equalizer && window.equalizer.applyPreset('club'); if (document.getElementById('eqPresetSelect')) document.getElementById('eqPresetSelect').value = 'club';" completionHandler:nil];
+}
+
+- (void)menuEqPop {
+    [self.webView evaluateJavaScript:@"window.equalizer && window.equalizer.applyPreset('pop'); if (document.getElementById('eqPresetSelect')) document.getElementById('eqPresetSelect').value = 'pop';" completionHandler:nil];
+}
+
 - (void)menuToggleAlwaysOnTop {
     BOOL top = (self.window.level == NSFloatingWindowLevel);
     [self setAlwaysOnTop:!top];
@@ -389,10 +489,23 @@
 
 #pragma mark - WKScriptMessageHandler
 - (void)userContentController:(WKUserContentController *)userContentController didReceiveScriptMessage:(WKScriptMessage *)message {
+    if ([message.name isEqualToString:@"consoleLog"] && [message.body isKindOfClass:[NSDictionary class]]) {
+        NSDictionary *dict = (NSDictionary *)message.body;
+        printf("[JS %s] %s\n", [dict[@"level"] UTF8String] ?: "LOG", [dict[@"message"] UTF8String] ?: "");
+        fflush(stdout);
+        return;
+    }
+    
     if (![message.body isKindOfClass:[NSDictionary class]]) return;
     
     NSDictionary *body = (NSDictionary *)message.body;
     NSString *action = body[@"action"];
+    
+    if ([action isEqualToString:@"log"]) {
+        printf("[JS]: %s\n", [body[@"message"] UTF8String] ?: "");
+        fflush(stdout);
+        return;
+    }
     
     if ([action isEqualToString:@"closeWindow"]) {
         [self.window close];
