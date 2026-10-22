@@ -173,6 +173,8 @@
 - (void)handleDroppedURLs:(NSArray<NSURL *> *)urls;
 - (void)addTracksToPlaylistFromURLs:(NSArray<NSURL *> *)urls;
 - (void)scanAndCollectFolder:(NSURL *)folderURL intoArray:(NSMutableArray<NSURL *> *)outArray;
+- (void)scanAndCollectFolder:(NSURL *)folderURL intoArray:(NSMutableArray<NSURL *> *)outArray maxCount:(NSUInteger)maxCount;
+- (void)handleAutoScanMusicLibrary;
 @end
 
 @implementation MacAmpAppDelegate
@@ -315,6 +317,8 @@
     NSMenuItem *fileMenuItem = [[NSMenuItem alloc] init];
     [mainMenu addItem:fileMenuItem];
     NSMenu *fileMenu = [[NSMenu alloc] initWithTitle:@"File"];
+    [fileMenu addItemWithTitle:@"Auto-Scan Music Library" action:@selector(autoScanAction) keyEquivalent:@"S"];
+    [[fileMenu.itemArray lastObject] setKeyEquivalentModifierMask:NSEventModifierFlagCommand | NSEventModifierFlagShift];
     [fileMenu addItemWithTitle:@"Open Audio Files..." action:@selector(openFileAction) keyEquivalent:@"o"];
     [fileMenu addItemWithTitle:@"Open Folder of Music..." action:@selector(openFolderAction) keyEquivalent:@"O"];
     [fileMenu addItem:[NSMenuItem separatorItem]];
@@ -383,6 +387,10 @@
 }
 
 #pragma mark - Menu Actions forwarded to Web
+- (void)autoScanAction {
+    [self handleAutoScanMusicLibrary];
+}
+
 - (void)openFileAction {
     [self handleOpenFile];
 }
@@ -540,6 +548,8 @@
         [self handleOpenFile];
     } else if ([action isEqualToString:@"openFolder"]) {
         [self handleOpenFolder];
+    } else if ([action isEqualToString:@"autoScanMusic"]) {
+        [self handleAutoScanMusicLibrary];
     } else if ([action isEqualToString:@"saveCollection"]) {
         NSString *data = body[@"data"];
         if (data && [data isKindOfClass:[NSString class]]) {
@@ -650,7 +660,42 @@
     }];
 }
 
+- (void)handleAutoScanMusicLibrary {
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        NSMutableArray<NSURL *> *discoveredUrls = [NSMutableArray array];
+        NSFileManager *fm = [NSFileManager defaultManager];
+        
+        NSArray *searchPaths = @[
+            [fm URLsForDirectory:NSMusicDirectory inDomains:NSUserDomainMask].firstObject,
+            [fm URLsForDirectory:NSDesktopDirectory inDomains:NSUserDomainMask].firstObject,
+            [fm URLsForDirectory:NSDownloadsDirectory inDomains:NSUserDomainMask].firstObject
+        ];
+        
+        for (NSURL *baseDir in searchPaths) {
+            if (!baseDir || ![fm fileExistsAtPath:[baseDir path]]) continue;
+            [self scanAndCollectFolder:baseDir intoArray:discoveredUrls maxCount:1000];
+            if (discoveredUrls.count >= 1000) break;
+        }
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if (discoveredUrls.count > 0) {
+                [self addTracksToPlaylistFromURLs:discoveredUrls];
+            } else {
+                NSAlert *alert = [[NSAlert alloc] init];
+                [alert setMessageText:@"Library Scan Complete"];
+                [alert setInformativeText:@"No audio files were found in ~/Music, ~/Desktop, or ~/Downloads.\n\nUse '+ FOLDER' or '+ FILE' to select your music collection."];
+                [alert addButtonWithTitle:@"OK"];
+                [alert runModal];
+            }
+        });
+    });
+}
+
 - (void)scanAndCollectFolder:(NSURL *)folderURL intoArray:(NSMutableArray<NSURL *> *)outArray {
+    [self scanAndCollectFolder:folderURL intoArray:outArray maxCount:2000];
+}
+
+- (void)scanAndCollectFolder:(NSURL *)folderURL intoArray:(NSMutableArray<NSURL *> *)outArray maxCount:(NSUInteger)maxCount {
     NSFileManager *fm = [NSFileManager defaultManager];
     NSDirectoryEnumerator *enumerator = [fm enumeratorAtURL:folderURL
                                  includingPropertiesForKeys:@[NSURLNameKey, NSURLIsDirectoryKey]
@@ -658,6 +703,12 @@
                                                errorHandler:nil];
                                                
     for (NSURL *url in enumerator) {
+        if (outArray.count >= maxCount) break;
+        NSString *path = [url path];
+        if ([path containsString:@"/node_modules/"] || [path containsString:@"/.git/"] || [path containsString:@"/Library/"] || [path containsString:@"/.Trash/"] || [path containsString:@"/.build/"]) {
+            [enumerator skipDescendants];
+            continue;
+        }
         NSString *ext = [[url pathExtension] lowercaseString];
         if ([@[@"mp3", @"wav", @"flac", @"ogg", @"m4a", @"aac", @"aiff", @"webm"] containsObject:ext]) {
             [outArray addObject:url];

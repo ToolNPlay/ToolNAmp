@@ -35,6 +35,7 @@ class ToolNAmpApp {
     this.bindPersistenceEvents();
     this.loadSavedTheme();
     this.startVUMeterLoop();
+    this.initMediaSession();
 
     // Load persisted collection from history
     const restored = this.loadSavedCollection();
@@ -384,6 +385,7 @@ class ToolNAmpApp {
     });
 
     // Playlist Action Buttons
+    document.getElementById('btnAutoScan')?.addEventListener('click', () => this.autoScanMusic());
     document.getElementById('btnAddFiles')?.addEventListener('click', () => this.openFilePicker());
     document.getElementById('btnAddFolder')?.addEventListener('click', () => this.openFolderPicker());
     document.getElementById('btnRemoveSelected')?.addEventListener('click', () => this.removeSelectedTrack());
@@ -699,6 +701,7 @@ class ToolNAmpApp {
     document.getElementById('badgeKhz').textContent = track.sampleRate || '44.1 KHZ';
     document.getElementById('badgeChannels').textContent = 'STEREO';
 
+    this.updateMediaSessionMetadata();
     this.updatePlaylistUI();
     this.saveCollection();
 
@@ -724,6 +727,12 @@ class ToolNAmpApp {
       this.isPaused = false;
       this.updateTransportLEDs();
       this.saveCollection();
+      if (this.currentTrackMeta) {
+        this.sendNative('playbackStarted', {
+          title: this.currentTrackMeta.title,
+          artist: this.currentTrackMeta.artist
+        });
+      }
     }).catch(err => {
       console.warn("Audio play error:", err ? (err.name + ': ' + err.message) : err);
     });
@@ -734,6 +743,7 @@ class ToolNAmpApp {
     this.isPlaying = false;
     this.isPaused = true;
     this.updateTransportLEDs();
+    this.sendNative('playbackPaused');
   }
 
   togglePlayPause() {
@@ -751,6 +761,7 @@ class ToolNAmpApp {
     this.updateTransportLEDs();
     this.updateTimeDisplay();
     this.updateSeekBar();
+    this.sendNative('playbackStopped');
   }
 
   prevTrack() {
@@ -806,6 +817,12 @@ class ToolNAmpApp {
     }
     if (miniPlay) {
       miniPlay.textContent = iconStr;
+    }
+
+    if ('mediaSession' in navigator) {
+      try {
+        navigator.mediaSession.playbackState = this.isPlaying ? 'playing' : (this.isPaused ? 'paused' : 'none');
+      } catch (e) {}
     }
   }
 
@@ -1168,9 +1185,11 @@ class ToolNAmpApp {
   }
 
   openFilePicker() {
-    // Try native Cocoa / Electron Open Panel first
-    if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.macamp) {
+    // Try native Cocoa / Android / Electron Open Panel first
+    if (window.webkit && window.webkit.messageHandlers && (window.webkit.messageHandlers.toolnamp || window.webkit.messageHandlers.macamp)) {
       this.sendNative('openFile');
+    } else if (window.AndroidBridge) {
+      document.getElementById('filePicker')?.click();
     } else if (window.electronAPI) {
       this.sendNative('openFile');
     } else {
@@ -1179,12 +1198,79 @@ class ToolNAmpApp {
   }
 
   openFolderPicker() {
-    if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.macamp) {
+    if (window.webkit && window.webkit.messageHandlers && (window.webkit.messageHandlers.toolnamp || window.webkit.messageHandlers.macamp)) {
       this.sendNative('openFolder');
+    } else if (window.AndroidBridge) {
+      this.sendNative('openFolderSAF');
     } else if (window.electronAPI) {
       this.sendNative('openFolder');
     } else {
       document.getElementById('folderPicker')?.click();
+    }
+  }
+
+  autoScanMusic() {
+    if (window.webkit && window.webkit.messageHandlers && (window.webkit.messageHandlers.toolnamp || window.webkit.messageHandlers.macamp)) {
+      this.sendNative('autoScanMusic');
+    } else if (window.AndroidBridge) {
+      this.sendNative('scanDeviceMusic');
+    } else {
+      document.getElementById('folderPicker')?.click();
+    }
+  }
+
+  initMediaSession() {
+    if (!('mediaSession' in navigator)) return;
+
+    try {
+      navigator.mediaSession.setActionHandler('play', () => this.play());
+      navigator.mediaSession.setActionHandler('pause', () => this.pause());
+      navigator.mediaSession.setActionHandler('previoustrack', () => this.prevTrack());
+      navigator.mediaSession.setActionHandler('nexttrack', () => this.nextTrack());
+      navigator.mediaSession.setActionHandler('stop', () => this.stop());
+
+      navigator.mediaSession.setActionHandler('seekto', (details) => {
+        if (details.seekTime !== undefined && window.audioEngine) {
+          window.audioEngine.seek(details.seekTime);
+          this.updateTimeDisplay();
+        }
+      });
+      navigator.mediaSession.setActionHandler('seekbackward', (details) => {
+        const offset = details.seekOffset || 10;
+        if (window.audioEngine) {
+          window.audioEngine.seek(window.audioEngine.audioElement.currentTime - offset);
+          this.updateTimeDisplay();
+        }
+      });
+      navigator.mediaSession.setActionHandler('seekforward', (details) => {
+        const offset = details.seekOffset || 10;
+        if (window.audioEngine) {
+          window.audioEngine.seek(window.audioEngine.audioElement.currentTime + offset);
+          this.updateTimeDisplay();
+        }
+      });
+    } catch (e) {
+      console.warn("MediaSession handler error:", e);
+    }
+  }
+
+  updateMediaSessionMetadata() {
+    if (!('mediaSession' in navigator) || !this.currentTrackMeta) return;
+
+    try {
+      const track = this.currentTrackMeta;
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: track.title || 'Unknown Title',
+        artist: track.artist || 'Local Music',
+        album: track.album || 'ToolNAmp Hi-Fi Library',
+        artwork: [
+          { src: 'AppIcon.png', sizes: '512x512', type: 'image/png' },
+          { src: 'AppIcon.png', sizes: '192x192', type: 'image/png' }
+        ]
+      });
+      navigator.mediaSession.playbackState = this.isPlaying ? 'playing' : (this.isPaused ? 'paused' : 'none');
+    } catch (e) {
+      console.warn("Error updating mediaSession metadata:", e);
     }
   }
 

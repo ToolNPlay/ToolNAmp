@@ -35,6 +35,19 @@ Developed by ToolNPlay.com • Authors: Pardeep Kumar & Harsh Suman
 INSTALLATION:
 Simply drag "ToolNAmp.app" into the "Applications" folder shortcut!
 
+GATEKEEPER / macOS SECURITY VERIFICATION:
+Because ToolNAmp is distributed independently as open-source software, macOS Gatekeeper may display:
+"ToolNAmp cannot be opened because Apple cannot check it for malicious software"
+
+To open smoothly on any Mac:
+• Option 1 (Recommended): Right-click (or Control-click) "ToolNAmp.app" in your Applications folder and select "Open", then click "Open". macOS remembers this approval permanently.
+• Option 2 (Terminal): Open Terminal and run:
+  xattr -cr /Applications/ToolNAmp.app
+
+SHA-256 INTEGRITY VERIFICATION:
+To verify the authentic integrity of this installer, open Terminal and run:
+  shasum -a 256 ToolNAmp.dmg
+
 FEATURES:
 - Authentic Native macOS Window Controls (Close, Minimize, Zoom/Maximize)
 - 1-Click Audio Visualizer Maximize / Theater Mode (Press 'F' or click ⤢ MAXIMIZE)
@@ -75,3 +88,10 @@ rm -rf "$STAGE_DIR"
 echo "=== DMG Build Successful! ==="
 echo "DMG File: $DMG_PATH"
 ls -lh "$DMG_PATH"
+
+echo ""
+echo "=== SHA-256 Checksum Verification ==="
+CHECKSUM=$(shasum -a 256 "$DMG_PATH" | awk '{print $1}')
+echo "ToolNAmp.dmg SHA-256: $CHECKSUM"
+echo "$CHECKSUM  ToolNAmp.dmg" > "$BUILD_DIR/SHA256SUMS.txt"
+echo "Saved checksum to: $BUILD_DIR/SHA256SUMS.txt"

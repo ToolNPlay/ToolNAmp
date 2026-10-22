@@ -9,17 +9,27 @@ echo "=== Preparing ToolNAmp Android Project & APK Assets ==="
 ASSETS_DIR="$DIR/android/app/src/main/assets/web"
 mkdir -p "$ASSETS_DIR"
 
-echo "Syncing web assets to Android package..."
+echo "Syncing lightweight web player assets to Android package..."
 cp -R "$DIR/src/web/"* "$ASSETS_DIR/"
 
 echo "Assets prepared at: $ASSETS_DIR"
 
-if command -v gradle &> /dev/null; then
-  echo "Gradle detected. Building Android APK..."
+if command -v ./gradlew &> /dev/null || [ -f "$DIR/android/gradlew" ]; then
+  echo "Building ToolNAmp Android APK..."
   cd "$DIR/android"
-  gradle assembleDebug
-  echo "Debug APK built at: $DIR/android/app/build/outputs/apk/debug/app-debug.apk"
+  ./gradlew assembleRelease || ./gradlew assembleDebug
+  
+  if [ -f "$DIR/android/app/build/outputs/apk/release/app-release.apk" ]; then
+    cp "$DIR/android/app/build/outputs/apk/release/app-release.apk" "$DIR/build/ToolNAmp.apk"
+    echo "Release APK ready at: $DIR/build/ToolNAmp.apk"
+  elif [ -f "$DIR/android/app/build/outputs/apk/debug/app-debug.apk" ]; then
+    cp "$DIR/android/app/build/outputs/apk/debug/app-debug.apk" "$DIR/build/ToolNAmp.apk"
+    echo "Debug APK ready at: $DIR/build/ToolNAmp.apk"
+  fi
+  "$DIR/scripts/generate-checksums.sh"
 else
-  echo "Note: Gradle is not in PATH. You can open the 'android' folder directly in Android Studio"
-  echo "or run './gradlew assembleRelease' to build ToolNAmp.apk."
+  echo ""
+  echo "Android Studio Project Ready at: $DIR/android"
+  echo "To build from terminal with Gradle installed, run:"
+  echo "  cd android && ./gradlew assembleRelease"
 fi

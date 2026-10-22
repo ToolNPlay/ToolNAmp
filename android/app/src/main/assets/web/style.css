@@ -1620,6 +1620,16 @@ body {
   color: var(--accent-primary);
 }
 
+.winamp-btn.play-pause-btn {
+  width: 38px;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.winamp-btn.play-pause-btn.is-playing {
+  color: var(--accent-secondary);
+}
+
 .winamp-btn.eject {
   color: var(--accent-secondary);
 }
@@ -2474,4 +2484,239 @@ kbd {
 
 .modal-ok-btn:active {
   filter: brightness(0.85);
+}
+
+/* ==========================================================================
+   MOBILE & MINIMAL TOUCH PLAYER RESPONSIVE LAYOUT
+   Optimized for Phones & Tablets (Screen Width <= 768px)
+   ========================================================================== */
+@media (max-width: 768px) {
+  :root {
+    --header-height: 40px;
+  }
+
+  body {
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+  }
+
+  .app-container {
+    height: 100vh;
+    height: 100dvh;
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Hide macOS native spacer on mobile */
+  .native-traffic-spacer {
+    display: none !important;
+  }
+
+  .app-header {
+    padding: 0 10px;
+    height: 42px;
+  }
+
+  .app-logo {
+    font-size: 13px;
+  }
+
+  .app-subtitle,
+  .app-credits-pill {
+    display: none !important;
+  }
+
+  .header-actions {
+    gap: 6px;
+  }
+
+  .header-actions #themeSelector {
+    max-width: 130px;
+    font-size: 10px;
+    padding: 2px 4px;
+  }
+
+  #btnWindowShade,
+  #btnAlwaysOnTop {
+    display: none !important;
+  }
+
+  /* Main Viewport & Display */
+  .player-main {
+    padding: 8px;
+    gap: 8px;
+  }
+
+  .display-section {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .display-left {
+    width: 100%;
+  }
+
+  .display-right {
+    width: 100%;
+    min-height: 130px;
+  }
+
+  #visualizerCanvas {
+    height: 130px;
+  }
+
+  .lcd-row {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .time-display {
+    min-width: 105px;
+  }
+
+  .time-digits {
+    font-size: 26px;
+  }
+
+  /* Touch Scrubber */
+  .seek-section {
+    padding: 4px 0;
+  }
+
+  .seek-slider {
+    height: 10px;
+  }
+
+  .seek-slider::-webkit-slider-thumb {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* Transport Row: Ergonomic Mobile Touch Targets */
+  .controls-row {
+    flex-direction: column;
+    gap: 10px;
+    align-items: stretch;
+  }
+
+  .transport-buttons {
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .winamp-btn {
+    width: 44px;
+    height: 38px;
+    font-size: 14px;
+  }
+
+  .winamp-btn.play-pause-btn {
+    width: 58px;
+    height: 38px;
+    font-size: 18px;
+  }
+
+  /* Mobile Faders */
+  .faders-group {
+    justify-content: space-around;
+    padding: 4px 0;
+  }
+
+  .fader-item {
+    flex: 1;
+    max-width: 160px;
+  }
+
+  .fader-slider {
+    width: 100%;
+    height: 8px;
+  }
+
+  /* Module Toggles */
+  .module-toggles {
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .toggle-btn {
+    padding: 5px 12px;
+    font-size: 11px;
+    min-height: 32px;
+  }
+
+  /* Equalizer Section: Touch-Scrollable Grid */
+  .eq-section {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 8px;
+  }
+
+  .eq-sliders-grid {
+    min-width: 440px;
+    padding: 0 4px;
+  }
+
+  .eq-vert-slider {
+    width: 22px;
+  }
+
+  /* Playlist Manager */
+  .playlist-section {
+    max-height: 360px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .playlist-table-wrap {
+    flex: 1;
+    min-height: 160px;
+    max-height: 240px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .playlist-action-bar {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .action-buttons-left,
+  .action-buttons-right {
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+    gap: 4px;
+  }
+
+  .pl-btn {
+    padding: 6px 10px;
+    font-size: 11px;
+    min-height: 32px;
+  }
+
+  .pl-btn.scan-btn {
+    background: var(--accent-primary);
+    color: #000;
+    font-weight: bold;
+    border-color: #fff;
+  }
+
+  .playlist-footer-bar {
+    flex-direction: column;
+    gap: 4px;
+    text-align: center;
+    padding: 6px;
+  }
+
+  .footer-credits-tag {
+    font-size: 9px;
+  }
+
+  .footer-right {
+    justify-content: center;
+    gap: 6px;
+  }
 }

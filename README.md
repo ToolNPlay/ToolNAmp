@@ -159,16 +159,91 @@ scripts\build-win.bat
 Output: `dist/ToolNAmp Setup 1.0.0.exe` and `dist/ToolNAmp 1.0.0.exe`
 
 ### Android (.apk)
-Sync web assets and build Android APK:
+Sync web assets and build Android APK with background playback and MediaStore scanning:
 ```bash
-# Prepares web assets into Android project:
+# 1. Prepares web assets into Android project:
 ./scripts/build-apk.sh
 
-# Build APK using Gradle:
+# 2. Generate Release Keystore (if needed):
+./scripts/generate-keystore.sh
+
+# 3. Build signed APK:
 cd android
 ./gradlew assembleRelease
 ```
-Output: `android/app/build/outputs/apk/release/app-release.apk`
+Output: `android/app/build/outputs/apk/release/app-release.apk` (or `build/ToolNAmp.apk`)
+
+---
+
+## 🔒 Security, Signing & SHA-256 Checksum Verification
+
+### 1. Verifying Releases via SHA-256
+Every official ToolNAmp build is fingerprinted with an immutable SHA-256 hash. To verify your downloaded file against `build/SHA256SUMS.txt`:
+
+```bash
+# Verify on macOS / Linux:
+shasum -a 256 -c build/SHA256SUMS.txt
+
+# Or compute directly:
+shasum -a 256 ToolNAmp.dmg
+shasum -a 256 ToolNAmp.apk
+```
+
+Official release hashes:
+```text
+ToolNAmp.dmg : 20583f8e6f501f800be88f461c30cbb08c36ecd3bd8c24ec62fdf97e2e7303c2
+```
+
+### 2. macOS Gatekeeper Verification
+Because ToolNAmp is distributed independently as open-source software, macOS Gatekeeper may show:  
+`"ToolNAmp" cannot be opened because Apple cannot check it for malicious software` or `Unidentified Developer`.
+
+To open frictionless on macOS:
+- **Method 1 (GUI)**: Right-click (or Control-click) `ToolNAmp.app` in `/Applications` and select **Open**, then click **Open**. macOS remembers this approval permanently.
+- **Method 2 (Terminal)**: Remove the quarantine bit:
+  ```bash
+  xattr -cr /Applications/ToolNAmp.app
+  ```
+
+### 3. Android Source & Signature Verification
+Android users can verify the authentic origin and certificate fingerprint of `ToolNAmp.apk`:
+```bash
+# Verify APK signature:
+apksigner verify --verbose --print-certs ToolNAmp.apk
+
+# Or check certificate with keytool:
+keytool -printcert -jarfile ToolNAmp.apk
+```
+Key attributes:
+- **Developer**: ToolNPlay.com (Pardeep Kumar & Harsh Suman)
+- **Algorithm**: RSA 2048-bit with SHA-256 digest
+
+---
+
+## 📱 Mobile Architecture & Background Playback
+
+ToolNAmp on Android includes full native mobile capabilities designed for battery efficiency and background playback:
+
+- **Screen-Locked Background Audio**:
+  - Leverages Android `WAKE_LOCK` (`PARTIAL_WAKE_LOCK`) and `FOREGROUND_SERVICE_MEDIA_PLAYBACK`.
+  - Integrates with the W3C `navigator.mediaSession` API.
+  - Native lock-screen controls, Bluetooth audio metadata, smartwatch controls, and notification shade controls remain active when the phone screen is locked.
+- **Automated Device Music Scanner**:
+  - Uses `MediaStore.Audio.Media` to discover and index all local MP3, FLAC, WAV, M4A, and AAC files across internal storage and SD cards in seconds.
+  - Storage Access Framework (SAF) folder picker for custom music directories (`ACTION_OPEN_DOCUMENT_TREE`).
+- **Responsive & Minimal Player Layout**:
+  - Touch-optimized transport buttons (`width: 58px`, `height: 38px`).
+  - Fluid scrolling playlist with tap-to-play rows.
+  - Touch-scrollable 10-band equalizer.
+  - Auto-minimizes to background on back-press (`moveTaskToBack(true)`) so music continues playing uninterrupted.
+
+---
+
+## 🖥️ Desktop Auto-Scan Music Library
+
+On macOS and Windows:
+- **1-Click Auto-Scan**: Click `🔍 SCAN` in the Playlist Manager action bar or press **Cmd + Shift + S** (`File ➔ Auto-Scan Music Library`).
+- Automatically indexes `~/Music`, `~/Desktop`, and `~/Downloads` recursively (skipping system/hidden folders), adding all discovered tracks to the playlist instantly.
 
 ---
 
@@ -178,7 +253,8 @@ Output: `android/app/build/outputs/apk/release/app-release.apk`
 ToolNAmp/
 ├── build/
 │   ├── ToolNAmp.app           # Native macOS Application bundle
-│   └── ToolNAmp.dmg           # Distributable macOS DMG installer (1.7 MB)
+│   ├── ToolNAmp.dmg           # Distributable macOS DMG installer (1.3 MB)
+│   └── SHA256SUMS.txt         # Official cryptographic release checksums
 ├── assets/
 │   ├── AppIcon.icns           # High-resolution multi-size macOS icon
 │   ├── icon.png               # High-resolution 512x512 icon for Windows & Android
@@ -188,24 +264,26 @@ ToolNAmp/
 │   └── preload.js             # Native IPC bridge for Windows
 ├── android/
 │   ├── app/
-│   │   ├── src/main/AndroidManifest.xml  # Android Audio & Storage permissions
-│   │   └── src/main/java/com/toolnplay/macamp/MainActivity.java
-│   └── build.gradle           # Android Gradle configuration
+│   │   ├── src/main/AndroidManifest.xml  # Android Audio, Media & Foreground permissions
+│   │   └── src/main/java/com/toolnplay/toolnamp/MainActivity.java # Native Android Bridge & MediaStore
+│   └── build.gradle           # Android Gradle configuration with release signing block
 ├── scripts/
 │   ├── build.sh               # Native Apple Clang compilation script
-│   ├── create-dmg.sh          # Native DMG disk image creator
+│   ├── create-dmg.sh          # Native DMG disk image creator with SHA-256
+│   ├── generate-checksums.sh  # Official SHA-256 checksum calculator
+│   ├── generate-keystore.sh   # Android release keystore generator
+│   ├── build-apk.sh           # Android asset packaging script
 │   ├── build-win.sh           # Windows .exe packaging script
-│   ├── build-win.bat          # Windows native batch script
-│   └── build-apk.sh           # Android asset packaging script
+│   └── build-win.bat          # Windows native batch script
 ├── src/
 │   ├── main.m                 # Native Cocoa / AppKit / WebKit macOS entrypoint
 │   └── web/
-│       ├── index.html         # Modular Winamp layout & DOM structure
-│       ├── style.css          # 25 themes, animations, & responsive styles
+│       ├── index.html         # Responsive Winamp layout & DOM structure
+│       ├── style.css          # 25 themes & mobile minimal touch stylesheet
 │       ├── audio-engine.js    # Web Audio API graph (10-band EQ, Reverb, VU)
 │       ├── visualizer.js      # 60fps canvas visualizer (5 modes + Theater mode)
 │       ├── equalizer.js       # EQ bands, presets, & curve renderer
-│       └── app.js             # App state, playlist, hotkeys, cross-platform bridge
+│       └── app.js             # MediaSession, auto-scan, playlist, hotkeys
 ├── package.json               # Node / Electron build definitions
 ├── capacitor.config.json      # Mobile Capacitor configuration
 ├── LICENSE                    # MIT License
