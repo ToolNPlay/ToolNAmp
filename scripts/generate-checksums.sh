@@ -26,7 +26,9 @@ calc_sha256 "$BUILD_DIR/ToolNAmp.dmg"
 # 2. Android APK
 calc_sha256 "$BUILD_DIR/ToolNAmp.apk"
 
-# 3. Windows Exe / Portable
+# 3. Windows Exe (Lightweight & Full Setup)
+calc_sha256 "$BUILD_DIR/ToolNAmp-Lightweight.exe"
+calc_sha256 "$BUILD_DIR/ToolNAmp-Windows-Lightweight.zip"
 calc_sha256 "$BUILD_DIR/ToolNAmp-Setup.exe"
 calc_sha256 "$BUILD_DIR/ToolNAmp-Portable.exe"
 

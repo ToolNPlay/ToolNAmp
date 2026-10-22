@@ -1185,13 +1185,15 @@ class ToolNAmpApp {
   }
 
   openFilePicker() {
-    // Try native Cocoa / Android / Electron Open Panel first
+    // Try native Cocoa / Android / Electron / WebView2 Open Panel first
     if (window.webkit && window.webkit.messageHandlers && (window.webkit.messageHandlers.toolnamp || window.webkit.messageHandlers.macamp)) {
+      this.sendNative('openFile');
+    } else if (window.electronAPI) {
+      this.sendNative('openFile');
+    } else if (window.chrome && window.chrome.webview) {
       this.sendNative('openFile');
     } else if (window.AndroidBridge) {
       document.getElementById('filePicker')?.click();
-    } else if (window.electronAPI) {
-      this.sendNative('openFile');
     } else {
       document.getElementById('filePicker')?.click();
     }
@@ -1200,10 +1202,12 @@ class ToolNAmpApp {
   openFolderPicker() {
     if (window.webkit && window.webkit.messageHandlers && (window.webkit.messageHandlers.toolnamp || window.webkit.messageHandlers.macamp)) {
       this.sendNative('openFolder');
-    } else if (window.AndroidBridge) {
-      this.sendNative('openFolderSAF');
     } else if (window.electronAPI) {
       this.sendNative('openFolder');
+    } else if (window.chrome && window.chrome.webview) {
+      this.sendNative('openFolder');
+    } else if (window.AndroidBridge) {
+      this.sendNative('openFolderSAF');
     } else {
       document.getElementById('folderPicker')?.click();
     }
@@ -1211,6 +1215,10 @@ class ToolNAmpApp {
 
   autoScanMusic() {
     if (window.webkit && window.webkit.messageHandlers && (window.webkit.messageHandlers.toolnamp || window.webkit.messageHandlers.macamp)) {
+      this.sendNative('autoScanMusic');
+    } else if (window.electronAPI) {
+      this.sendNative('openFolder');
+    } else if (window.chrome && window.chrome.webview) {
       this.sendNative('autoScanMusic');
     } else if (window.AndroidBridge) {
       this.sendNative('scanDeviceMusic');
@@ -1408,6 +1416,12 @@ class ToolNAmpApp {
         window.electronAPI.send(action, payload);
       } catch (e) {
         console.log("Electron bridge error:", e);
+      }
+    } else if (window.chrome && window.chrome.webview) {
+      try {
+        window.chrome.webview.postMessage({ action, ...payload });
+      } catch (e) {
+        console.log("WebView2 bridge error:", e);
       }
     } else if (window.AndroidBridge) {
       try {

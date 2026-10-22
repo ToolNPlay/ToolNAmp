@@ -30,10 +30,11 @@ ToolNAmp is built from a single unified codebase with native platform bindings:
 
 | Platform | Format | File | Size | Build Command | Output Location |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **macOS** | `.dmg` Installer & `.app` | `ToolNAmp.dmg` | **1.3 MB** | `./scripts/build.sh && ./scripts/create-dmg.sh` | `build/ToolNAmp.dmg` |
-| **Windows** | `.exe` NSIS Installer | `ToolNAmp-Setup.exe` | **74 MB** | `npm run build:win` | `build/ToolNAmp-Setup.exe` |
-| **Windows** | `.exe` Portable Executable | `ToolNAmp-Portable.exe` | **74 MB** | `npm run build:win:portable` | `build/ToolNAmp-Portable.exe` |
-| **Android** | `.apk` Release Signed | `ToolNAmp.apk` | **8.9 MB** | `./scripts/build-apk.sh` | `build/ToolNAmp.apk` |
+| **Windows** | Native Win32 WebView2 Portable | `ToolNAmp-Windows-Lightweight.zip` | **`798 KB`** | `./windows/build-lightweight.sh` | `build/ToolNAmp-Windows-Lightweight.zip` |
+| **macOS** | Native Cocoa DMG Installer | `ToolNAmp.dmg` | **`1.3 MB`** | `./scripts/build.sh && ./scripts/create-dmg.sh` | `build/ToolNAmp.dmg` |
+| **Android** | Release Signed APK Package | `ToolNAmp.apk` | **`8.9 MB`** | `./scripts/build-apk.sh` | `build/ToolNAmp.apk` |
+| **Windows** | Full Offline NSIS Installer | `ToolNAmp-Setup.exe` | **`74 MB`** | `npm run build:win` | `build/ToolNAmp-Setup.exe` |
+| **Windows** | Full Offline Portable Executable | `ToolNAmp-Portable.exe` | **`74 MB`** | `npm run build:win:portable` | `build/ToolNAmp-Portable.exe` |
 
 ---
 
@@ -195,9 +196,11 @@ shasum -a 256 ToolNAmp.apk
 Official release hashes:
 ```text
 20583f8e6f501f800be88f461c30cbb08c36ecd3bd8c24ec62fdf97e2e7303c2  ToolNAmp.dmg
+04763e6f5a8d60f82cde37dbc5f4f81c71a7eb06546ca8c33c64037aa6b16cd3  ToolNAmp.apk
+2c6f4cc9d9a942cdca3bfbd55db0ae406301e539c604aa0a89ef498107216adc  ToolNAmp-Lightweight.exe
+9253d6b18ecc30724711de03c7d7fcbf9a9f8a6965e18ac03318c9bc42113f83  ToolNAmp-Windows-Lightweight.zip
 fc180d313808ce3b32986342fff555a364d3da44597ed1863ca04de38ee0a084  ToolNAmp-Setup.exe
 8a7de6d6e31c429a6684b17d1db434e124c2730c50814890a316f44cc9eb38a0  ToolNAmp-Portable.exe
-04763e6f5a8d60f82cde37dbc5f4f81c71a7eb06546ca8c33c64037aa6b16cd3  ToolNAmp.apk
 ```
 
 ### 2. macOS Gatekeeper Verification
