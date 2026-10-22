@@ -13,6 +13,7 @@ dist/
 out/
 bin/
 obj/
+downloads/
 *.dmg
 *.iso
 *.app
