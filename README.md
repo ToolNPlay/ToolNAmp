@@ -9,7 +9,9 @@
 > **Authors**:  
 > - **Pardeep Kumar** — [LinkedIn](https://www.linkedin.com/in/pardeeppatel/) • [GitHub](https://github.com/pardeeppatel)  
 > - **Harsh Suman** — [LinkedIn](https://www.linkedin.com/in/harshsuman/)  
-> **Target Formats**: macOS (`.dmg`), Windows (`.exe`), Android (`.apk`)
+> **Official Landing Page**: [toolnplay.com/software/toolnamp](https://toolnplay.com/software/toolnamp)  
+> **ToolnPlay Software Hub**: [toolnplay.com/software](https://toolnplay.com/software)  
+> **Target Formats**: macOS (`.dmg`), Windows (`.zip` / `.exe`), Android (`.apk`)
 
 **ToolNAmp** is an ultra-fast, minimalistic, yet feature-packed offline music player inspired by the legendary aesthetics and tactile experience of **Winamp**, re-engineered for modern platforms with 25 themes, a 10-band graphic equalizer, 5 real-time 60 FPS audio visualizers, DSP effects rack, window shading, and persistent playback history.
 
@@ -197,8 +199,8 @@ Official release hashes:
 ```text
 20583f8e6f501f800be88f461c30cbb08c36ecd3bd8c24ec62fdf97e2e7303c2  ToolNAmp.dmg
 04763e6f5a8d60f82cde37dbc5f4f81c71a7eb06546ca8c33c64037aa6b16cd3  ToolNAmp.apk
-2c6f4cc9d9a942cdca3bfbd55db0ae406301e539c604aa0a89ef498107216adc  ToolNAmp-Lightweight.exe
-9253d6b18ecc30724711de03c7d7fcbf9a9f8a6965e18ac03318c9bc42113f83  ToolNAmp-Windows-Lightweight.zip
+2d69e4eb53741553129ba6962543d11ff043b6f9eadadcc75b0ae881cc867054  ToolNAmp-Lightweight.exe
+950aa360397b56bb9dbcbb8f0c46d205f0e2fe946fe8899b79ee6327a7d87b39  ToolNAmp-Windows-Lightweight.zip
 fc180d313808ce3b32986342fff555a364d3da44597ed1863ca04de38ee0a084  ToolNAmp-Setup.exe
 8a7de6d6e31c429a6684b17d1db434e124c2730c50814890a316f44cc9eb38a0  ToolNAmp-Portable.exe
 ```

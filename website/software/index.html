@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Free Desktop & Mobile Software | ToolnPlay — Native, Lightweight Apps</title>
+  <meta name="description" content="Explore lightweight, high-performance desktop and mobile software from ToolnPlay. Download ToolNAmp retro music player for macOS, Windows, and Android. 100% Free & Open Source.">
+  <meta name="keywords" content="ToolnPlay Software, ToolNAmp, Winamp, music player, retro audio player, desktop software, open source, pardeep kumar, harsh suman">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://toolnplay.com/software">
+
+  <meta property="og:title" content="Free Desktop & Mobile Software | ToolnPlay">
+  <meta property="og:description" content="Download lightweight native applications for macOS, Windows, and Android. Featuring ToolNAmp, the modern retro music player.">
+  <meta property="og:image" content="https://toolnplay.com/software/toolnamp/icon.png">
+  <meta property="og:url" content="https://toolnplay.com/software">
+  <meta property="og:type" content="website">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Free Desktop & Mobile Software | ToolnPlay">
+  <meta name="twitter:description" content="Download lightweight native applications for macOS, Windows, and Android.">
+  <meta name="twitter:image" content="https://toolnplay.com/software/toolnamp/icon.png">
+
+  <link rel="icon" href="https://toolnplay.com/favicon.ico">
+  <meta property="og:site_name" content="ToolnPlay">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+    #sticky-wrapper { position: sticky; top: 0; z-index: 5000; }
+    .dropdown-open { display: block !important; opacity: 1 !important; pointer-events: auto !important; }
+    .user-dropdown { z-index: 9001; position: absolute; right: 0; top: 100%; }
+
+    .software-hero {
+      background: linear-gradient(135deg, #3730a3 0%, #4f46e5 45%, #7c3aed 75%, #db2777 100%);
+    }
+    .card {
+      transition: transform .22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow .22s cubic-bezier(0.16, 1, 0.3, 1), border-color .22s ease;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 16px 32px rgba(79, 70, 229, 0.12);
+      border-color: rgba(99, 102, 241, 0.45);
+    }
+    .badge {
+      display: inline-block; padding: .20rem .60rem; font-size: .72rem; font-weight: 700;
+      border-width: 1px; border-radius: 9999px; white-space: nowrap;
+    }
+    .filter-pill { cursor: pointer; transition: all .15s ease; user-select: none; }
+    .filter-pill.active { background: #eef2ff; color: #3730a3; font-weight: 700; border-color: #a5b4fc; }
+    .search-input::placeholder { color: #9ca3af; }
+    .icon-box span { font-size: 28px; line-height: 1; display: inline-flex; align-items: center; justify-content: center; }
+  </style>
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-6K6TSD5RBN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-6K6TSD5RBN');
+  </script>
+</head>
+
+<body class="bg-gray-50 text-gray-800">
+<div id="sticky-wrapper" class="w-full bg-white shadow-md">
+
+  <!-- TOP AUTH BAR -->
+  <div class="top-auth-bar bg-gray-900 text-gray-200 text-sm py-2 border-b border-gray-800 w-full">
+    <div class="max-w-screen-xl mx-auto px-4 flex justify-between items-center">
+      <div class="hidden sm:block">
+        <span class="text-gray-400">ToolnPlay – Smarter Tools. Faster Results.</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <a href="https://toolnplay.com/login" class="text-gray-200 hover:text-white font-semibold">Login</a>
+        <a href="https://toolnplay.com/register" class="bg-indigo-600 hover:bg-indigo-700 text-white py-1 px-3 rounded text-sm font-bold">Sign Up</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN NAV -->
+  <header class="bg-white w-full">
+    <div class="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <a href="https://toolnplay.com" class="text-2xl font-bold text-indigo-600">Tool<span class="text-pink-500">n</span>Play</a>
+
+        <nav class="hidden md:flex space-x-8">
+          <a href="https://toolnplay.com/index" class="font-medium text-gray-600 hover:text-indigo-600">Home</a>
+          <a href="https://toolnplay.com/about" class="font-medium text-gray-600 hover:text-indigo-600">About</a>
+          <a href="https://toolnplay.com/blog" class="font-medium text-gray-600 hover:text-indigo-600">Blog</a>
+          <a href="https://tools.toolnplay.com" class="font-medium text-gray-600 hover:text-indigo-600">More Tools</a>
+          <a href="https://games.toolnplay.com" class="font-medium text-gray-600 hover:text-indigo-600">More Games</a>
+          <a href="https://toolnplay.com/apps" class="font-medium text-gray-600 hover:text-indigo-600">Apps</a>
+          <a href="https://toolnplay.com/software" class="font-bold text-indigo-600">Software</a>
+          <a href="https://toolnplay.com/fm-player" class="font-medium text-gray-600 hover:text-indigo-600">FM Player</a>
+          <a href="https://toolnplay.com/contact" class="font-medium text-gray-600 hover:text-indigo-600">Contact</a>
+        </nav>
+
+        <button id="mobile-menu-button" class="md:hidden p-2 text-gray-500 hover:text-gray-700">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div id="mobile-menu" class="md:hidden hidden px-4 pb-3">
+      <a href="https://toolnplay.com/index" class="block py-2 font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50">Home</a>
+      <a href="https://toolnplay.com/about" class="block py-2 font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50">About</a>
+      <a href="https://toolnplay.com/blog" class="block py-2 font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50">Blog</a>
+      <a href="https://tools.toolnplay.com" class="block py-2 font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50">More Tools</a>
+      <a href="https://games.toolnplay.com" class="block py-2 font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50">More Games</a>
+      <a href="https://toolnplay.com/apps" class="block py-2 font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50">Apps</a>
+      <a href="https://toolnplay.com/software" class="block py-2 font-bold text-indigo-600 bg-indigo-50">Software</a>
+      <a href="https://toolnplay.com/fm-player" class="block py-2 font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50">FM Player</a>
+      <a href="https://toolnplay.com/contact" class="block py-2 font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50">Contact</a>
+    </div>
+  </header>
+</div>
+
+<!-- FM Player Promo Banner -->
+<section class="bg-indigo-700 text-white py-3 shadow-inner">
+  <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-screen-xl text-center flex flex-col sm:flex-row items-center justify-between gap-2">
+    <p class="text-base sm:text-lg font-semibold flex items-center justify-center">
+      <span class="mr-2 text-xl">⚡</span>
+      New Release: <b>ToolNAmp</b> — The Classic Retro Music Player for macOS, Windows & Android!
+    </p>
+    <a href="https://toolnplay.com/software/toolnamp"
+       class="inline-block bg-pink-500 hover:bg-pink-600 text-white font-bold py-1.5 px-4 rounded-lg shadow-md transform hover:scale-105 transition duration-300 ease-in-out text-xs uppercase tracking-wider">
+       Explore & Download &rarr;
+    </a>
+  </div>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const menuBtn = document.getElementById('mobile-menu-button');
+  const mobile = document.getElementById('mobile-menu');
+  if (menuBtn && mobile) {
+    menuBtn.addEventListener('click', () => mobile.classList.toggle('hidden'));
+  }
+});
+</script>
+
+<main>
+  <!-- HERO (FOLLOWING /tools/ PATTERN) -->
+  <section class="software-hero text-white py-14 md:py-20">
+    <div class="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-xs font-semibold mb-4 text-pink-200">
+        <span>🚀 Native & High-Performance</span>
+      </div>
+      <h1 class="text-4xl sm:text-6xl font-black tracking-tight">Desktop & Mobile Software</h1>
+      <p class="text-lg sm:text-xl mt-4 max-w-2xl mx-auto text-indigo-100 font-normal">
+        Explore ultra-lightweight, offline-capable, and native software engineered by ToolnPlay for macOS, Windows, and Android. 100% Free & Open Source.
+      </p>
+    </div>
+  </section>
+
+  <!-- FILTERS & SEARCH (MATCHING /tools PATTERN) -->
+  <section class="py-10">
+    <div class="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
+
+      <p class="text-center text-lg text-gray-600 mt-1 mb-8 max-w-3xl mx-auto">
+        Welcome to the ToolnPlay Software Hub! Each application is engineered with high efficiency, clean modern code, and zero telemetry bloat.
+      </p>
+
+      <!-- Access filter + search -->
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="flex items-center gap-2">
+            <label for="platformFilter" class="text-sm text-gray-600 font-medium">Platform:</label>
+            <select id="platformFilter" class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+              <option value="all">All Platforms</option>
+              <option value="macos">macOS (1.3 MB)</option>
+              <option value="windows">Windows (798 KB)</option>
+              <option value="android">Android (8.9 MB)</option>
+              <option value="web">Web Browser</option>
+            </select>
+          </div>
+          <div class="flex items-center gap-2">
+            <label for="accessFilter" class="text-sm text-gray-600 font-medium">License:</label>
+            <select id="accessFilter" class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+              <option value="all">All Licenses</option>
+              <option value="free_open_source">Free & Open Source</option>
+              <option value="freeware">Freeware</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="w-full md:w-80">
+          <input id="searchInput" type="search" placeholder="Search software (e.g. ToolNAmp, music player)..."
+                 class="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm search-input bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
+        </div>
+      </div>
+
+      <!-- Category pills -->
+      <div id="catPills" class="flex flex-wrap gap-2 mb-8">
+        <span class="filter-pill active inline-block px-3.5 py-1.5 rounded-full border border-gray-200 text-sm font-medium"
+              data-cat="all">All Software</span>
+        <span class="filter-pill inline-block px-3.5 py-1.5 rounded-full border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-100"
+              data-cat="audio">Audio & Media</span>
+        <span class="filter-pill inline-block px-3.5 py-1.5 rounded-full border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-100"
+              data-cat="streaming">Radio & Streaming</span>
+        <span class="filter-pill inline-block px-3.5 py-1.5 rounded-full border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-100"
+              data-cat="utilities">Productivity & Utilities</span>
+      </div>
+
+      <!-- SOFTWARE GRID (MATCHING /tools GRID) -->
+      <div id="softwareGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+        <!-- CARD 1: ToolNAmp (FEATURED HERO SOFTWARE) -->
+        <a href="https://toolnplay.com/software/toolnamp"
+           class="card block bg-white border-2 border-indigo-200 rounded-2xl p-6 relative overflow-hidden shadow-sm"
+           data-cat="audio"
+           data-platform="macos windows android"
+           data-access="free_open_source"
+           data-title="toolnamp retro music player winamp 10-band equalizer 25 skins visualizer">
+          
+          <div class="absolute top-0 right-0 bg-gradient-to-l from-indigo-600 to-pink-500 text-white text-[10px] font-extrabold uppercase px-3 py-1 rounded-bl-lg tracking-wider">
+            ★ Featured Release
+          </div>
+
+          <div class="flex items-start justify-between gap-3 mb-4">
+            <div class="shrink-0">
+              <div class="h-14 w-14 grid place-items-center rounded-xl bg-gradient-to-tr from-indigo-500 via-purple-600 to-pink-500 text-white shadow-md">
+                <span class="text-3xl">⚡</span>
+              </div>
+            </div>
+            <div class="flex flex-col items-end gap-1 mt-1">
+              <span class="badge bg-emerald-100 text-emerald-800 border-emerald-200">Free &amp; Open Source</span>
+              <span class="text-[11px] text-gray-500 font-medium">macOS • Windows • Android</span>
+            </div>
+          </div>
+
+          <h3 class="text-xl font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">
+            ToolNAmp — Retro Music Player
+          </h3>
+          <p class="mt-2 text-sm text-gray-600 line-clamp-3 leading-relaxed">
+            Ultra-lightweight retro music player inspired by Winamp. Features 25 festival &amp; retro skins, 10-band graphic equalizer, 5 real-time 60 FPS visualizers, and screen-locked background audio.
+          </p>
+
+          <div class="mt-4 pt-4 border-t border-gray-100 flex flex-wrap gap-1.5">
+            <span class="text-[11px] px-2 py-0.5 rounded bg-gray-100 text-gray-700 font-semibold">macOS: 1.3 MB</span>
+            <span class="text-[11px] px-2 py-0.5 rounded bg-gray-100 text-gray-700 font-semibold">Win: 798 KB</span>
+            <span class="text-[11px] px-2 py-0.5 rounded bg-gray-100 text-gray-700 font-semibold">APK: 8.9 MB</span>
+          </div>
+
+          <div class="mt-4 flex items-center justify-between">
+            <span class="inline-flex items-center gap-1.5 text-indigo-600 font-bold text-sm">
+              Explore &amp; Download
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+              </svg>
+            </span>
+            <span class="text-xs text-gray-400 font-medium">v1.0.0 Stable</span>
+          </div>
+        </a>
+
+        <!-- CARD 2: ToolnPlay FM Player -->
+        <a href="https://toolnplay.com/fm-player"
+           class="card block bg-white border border-gray-200 rounded-2xl p-6 shadow-sm"
+           data-cat="streaming audio"
+           data-platform="web android"
+           data-access="free_open_source"
+           data-title="all india fm player radio live streaming stations">
+          <div class="flex items-start justify-between gap-3 mb-4">
+            <div class="shrink-0">
+              <div class="h-14 w-14 grid place-items-center rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-600">
+                <span class="text-3xl">📻</span>
+              </div>
+            </div>
+            <div class="flex flex-col items-end gap-1">
+              <span class="badge bg-indigo-100 text-indigo-800 border-indigo-200">Free Online</span>
+              <span class="text-[11px] text-gray-500 font-medium">Web App</span>
+            </div>
+          </div>
+
+          <h3 class="text-xl font-bold text-gray-900">
+            All India FM Player
+          </h3>
+          <p class="mt-2 text-sm text-gray-600 line-clamp-3 leading-relaxed">
+            Tune into hundreds of live All India Radio and regional FM stations online with zero lag, instant channel search, volume memory, and clean background playback.
+          </p>
+
+          <div class="mt-4 pt-4 border-t border-gray-100 flex flex-wrap gap-1.5">
+            <span class="text-[11px] px-2 py-0.5 rounded bg-gray-100 text-gray-700 font-semibold">100+ Channels</span>
+            <span class="text-[11px] px-2 py-0.5 rounded bg-gray-100 text-gray-700 font-semibold">Live Streaming</span>
+          </div>
+
+          <div class="mt-4 flex items-center justify-between">
+            <span class="inline-flex items-center gap-1.5 text-indigo-600 font-bold text-sm">
+              Tune In Now
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+              </svg>
+            </span>
+            <span class="text-xs text-gray-400 font-medium">Web / Mobile</span>
+          </div>
+        </a>
+
+        <!-- CARD 3: Direct P2P File Transfer -->
+        <a href="https://toolnplay.com/p2p-file-share"
+           class="card block bg-white border border-gray-200 rounded-2xl p-6 shadow-sm"
+           data-cat="utilities"
+           data-platform="web"
+           data-access="free_open_source"
+           data-title="direct p2p file transfer live room private sharing webrtc">
+          <div class="flex items-start justify-between gap-3 mb-4">
+            <div class="shrink-0">
+              <div class="h-14 w-14 grid place-items-center rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-600">
+                <span class="text-3xl">🧰</span>
+              </div>
+            </div>
+            <div class="flex flex-col items-end gap-1">
+              <span class="badge bg-emerald-100 text-emerald-800 border-emerald-200">Free</span>
+              <span class="text-[11px] text-gray-500 font-medium">Cross-Platform WebRTC</span>
+            </div>
+          </div>
+
+          <h3 class="text-xl font-bold text-gray-900">
+            Direct P2P File Transfer &amp; Room
+          </h3>
+          <p class="mt-2 text-sm text-gray-600 line-clamp-3 leading-relaxed">
+            Send files of unlimited size directly between browsers across any network or WiFi. Zero cloud upload, end-to-end encrypted, and blazing fast.
+          </p>
+
+          <div class="mt-4 pt-4 border-t border-gray-100 flex flex-wrap gap-1.5">
+            <span class="text-[11px] px-2 py-0.5 rounded bg-gray-100 text-gray-700 font-semibold">Zero Server Limits</span>
+            <span class="text-[11px] px-2 py-0.5 rounded bg-gray-100 text-gray-700 font-semibold">End-to-End Encrypted</span>
+          </div>
+
+          <div class="mt-4 flex items-center justify-between">
+            <span class="inline-flex items-center gap-1.5 text-indigo-600 font-bold text-sm">
+              Launch Transfer
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+              </svg>
+            </span>
+            <span class="text-xs text-gray-400 font-medium">All Browsers</span>
+          </div>
+        </a>
+
+      </div>
+
+      <!-- Empty State -->
+      <div id="noResults" class="hidden text-center py-16">
+        <div class="text-4xl mb-3">🔍</div>
+        <h4 class="text-lg font-bold text-gray-800">No software found matching your search</h4>
+        <p class="text-sm text-gray-500 mt-1">Try searching for "ToolNAmp", "music", or clear your platform filter.</p>
+        <button id="resetFiltersBtn" class="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700">
+          Reset All Filters
+        </button>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- AUTHORS & ENGINEERING SPOTLIGHT -->
+  <section class="py-12 bg-white border-t border-gray-200">
+    <div class="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-2xl mx-auto mb-10">
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-gray-900">Engineered with Passion</h2>
+        <p class="text-sm text-gray-600 mt-2">
+          ToolnPlay applications are designed and maintained by passionate engineers dedicated to high-speed, lightweight, and open software.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
+        <div class="p-5 rounded-xl border border-gray-200 bg-gray-50/50 flex items-center gap-4">
+          <div class="w-12 h-12 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-lg">
+            PK
+          </div>
+          <div>
+            <h4 class="font-bold text-gray-900">Pardeep Kumar</h4>
+            <p class="text-xs text-gray-500 mb-1">Lead Architect &amp; Software Engineer</p>
+            <div class="flex gap-3 text-xs font-semibold">
+              <a href="https://www.linkedin.com/in/pardeeppatel/" target="_blank" class="text-indigo-600 hover:underline">LinkedIn &rarr;</a>
+              <a href="https://github.com/pardeeppatel" target="_blank" class="text-gray-700 hover:underline">GitHub &rarr;</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-5 rounded-xl border border-gray-200 bg-gray-50/50 flex items-center gap-4">
+          <div class="w-12 h-12 rounded-full bg-pink-600 text-white flex items-center justify-center font-bold text-lg">
+            HS
+          </div>
+          <div>
+            <h4 class="font-bold text-gray-900">Harsh Suman</h4>
+            <p class="text-xs text-gray-500 mb-1">Co-Author &amp; Systems Engineer</p>
+            <div class="flex gap-3 text-xs font-semibold">
+              <a href="https://www.linkedin.com/in/harshsuman/" target="_blank" class="text-indigo-600 hover:underline">LinkedIn &rarr;</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- FOOTER (MATCHING toolnplay.com) -->
+<footer class="bg-gray-800 text-gray-300 py-12">
+  <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-screen-xl">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+
+      <div>
+        <h3 class="text-xl font-semibold text-white mb-4">
+          Tool<span class="text-pink-400">n</span>Play
+        </h3>
+        <p class="text-sm text-gray-400 leading-relaxed">
+          Your friendly hub for useful online tools, entertaining browser games, desktop software, and innovative mobile apps.
+        </p>
+      </div>
+
+      <div>
+        <h4 class="text-lg font-semibold text-white mb-4">Quick Links</h4>
+        <ul class="space-y-2 text-sm">
+          <li><a href="https://toolnplay.com" class="hover:text-indigo-400">Home</a></li>
+          <li><a href="https://toolnplay.com/about" class="hover:text-indigo-400">About Us</a></li>
+          <li><a href="https://tools.toolnplay.com" class="hover:text-indigo-400">All Tools</a></li>
+          <li><a href="https://games.toolnplay.com" class="hover:text-indigo-400">All Games</a></li>
+          <li><a href="https://toolnplay.com/software" class="text-indigo-400 font-semibold">Software Hub</a></li>
+          <li><a href="https://toolnplay.com/apps" class="hover:text-indigo-400">Our Apps</a></li>
+          <li><a href="https://toolnplay.com/fm-player" class="hover:text-indigo-400">FM Player</a></li>
+          <li><a href="https://toolnplay.com/contact" class="hover:text-indigo-400">Contact</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 class="text-lg font-semibold text-white mb-4">Software &amp; Releases</h4>
+        <ul class="space-y-2 text-sm">
+          <li><a href="https://toolnplay.com/software/toolnamp" class="text-white hover:text-indigo-400 font-medium">⚡ ToolNAmp (Winamp Player)</a></li>
+          <li><a href="https://github.com/toolnplay/toolnamp" target="_blank" class="hover:text-indigo-400">GitHub Source Code</a></li>
+          <li><a href="https://github.com/toolnplay/toolnamp/releases" target="_blank" class="hover:text-indigo-400">Releases &amp; Checksums</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 class="text-lg font-semibold text-white mb-4">Legal</h4>
+        <ul class="space-y-2 text-sm">
+          <li><a href="https://toolnplay.com/privacy-policy" class="hover:text-indigo-400">Privacy Policy</a></li>
+          <li><a href="https://toolnplay.com/terms-and-conditions" class="hover:text-indigo-400">Terms &amp; Conditions</a></li>
+        </ul>
+        <p class="text-[11px] text-gray-500 mt-4 leading-normal">
+          Winamp is a registered trademark of Llama Group SA. ToolNAmp is an independent project by ToolNPlay.
+        </p>
+      </div>
+
+    </div>
+
+    <div class="border-t border-gray-700 pt-8 text-center text-sm text-gray-400">
+      <p>&copy; <span id="year"></span> ToolnPlay. All Rights Reserved. Authored by Pardeep Kumar &amp; Harsh Suman.</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+document.getElementById('year').textContent = new Date().getFullYear();
+
+// Live Instant Search & Filter Logic (matching /tools)
+document.addEventListener('DOMContentLoaded', () => {
+  const searchInput = document.getElementById('searchInput');
+  const platformFilter = document.getElementById('platformFilter');
+  const accessFilter = document.getElementById('accessFilter');
+  const catPills = document.querySelectorAll('.filter-pill');
+  const cards = document.querySelectorAll('#softwareGrid .card');
+  const noResults = document.getElementById('noResults');
+  const resetBtn = document.getElementById('resetFiltersBtn');
+
+  let activeCat = 'all';
+
+  function applyFilters() {
+    const q = (searchInput.value || '').trim().toLowerCase();
+    const plat = platformFilter.value;
+    const access = accessFilter.value;
+
+    let visibleCount = 0;
+
+    cards.forEach(card => {
+      const cardCat = card.getAttribute('data-cat') || '';
+      const cardPlat = card.getAttribute('data-platform') || '';
+      const cardAccess = card.getAttribute('data-access') || '';
+      const cardTitle = card.getAttribute('data-title') || '';
+
+      const matchesCat = (activeCat === 'all') || cardCat.includes(activeCat);
+      const matchesPlat = (plat === 'all') || cardPlat.includes(plat);
+      const matchesAccess = (access === 'all') || (cardAccess === access);
+      const matchesSearch = !q || cardTitle.includes(q) || card.textContent.toLowerCase().includes(q);
+
+      if (matchesCat && matchesPlat && matchesAccess && matchesSearch) {
+        card.classList.remove('hidden');
+        visibleCount++;
+      } else {
+        card.classList.add('hidden');
+      }
+    });
+
+    if (noResults) {
+      if (visibleCount === 0) {
+        noResults.classList.remove('hidden');
+      } else {
+        noResults.classList.add('hidden');
+      }
+    }
+  }
+
+  catPills.forEach(pill => {
+    pill.addEventListener('click', () => {
+      catPills.forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      activeCat = pill.getAttribute('data-cat');
+      applyFilters();
+    });
+  });
+
+  if (searchInput) searchInput.addEventListener('input', applyFilters);
+  if (platformFilter) platformFilter.addEventListener('change', applyFilters);
+  if (accessFilter) accessFilter.addEventListener('change', applyFilters);
+
+  if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+      searchInput.value = '';
+      platformFilter.value = 'all';
+      accessFilter.value = 'all';
+      catPills.forEach(p => p.classList.remove('active'));
+      catPills[0].classList.add('active');
+      activeCat = 'all';
+      applyFilters();
+    });
+  }
+});
+</script>
+
+</body>
+</html>
