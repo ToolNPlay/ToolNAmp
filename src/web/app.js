@@ -1353,7 +1353,10 @@ class ToolNAmpApp {
   }
 
   loadSavedTheme() {
-    const saved = localStorage.getItem('macamp_theme') || 'winamp-classic';
+    let saved = localStorage.getItem('macamp_theme');
+    if (!saved || saved === 'winamp-classic' || saved === 'mac-dark') {
+      saved = 'modern-glass';
+    }
     this.setTheme(saved);
   }
 

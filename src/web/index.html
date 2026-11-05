@@ -1,13 +1,20 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="winamp-classic">
+<html lang="en" data-theme="modern-glass">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>ToolNAmp - Retro Music Player</title>
+  <title>ToolNAmp - Modern Glass Audio Player</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div id="app" class="app-container">
+
+    <!-- AMBIENT GLASSMORPHIC GLOW MESH LAYER -->
+    <div class="ambient-glow-layer" aria-hidden="true">
+      <div class="ambient-orb orb-1"></div>
+      <div class="ambient-orb orb-2"></div>
+      <div class="ambient-orb orb-3"></div>
+    </div>
 
     <!-- TOP HEADER / MAC TITLEBAR -->
     <header class="app-header" id="appHeader">
@@ -16,13 +23,28 @@
 
       <div class="titlebar-center" id="titlebarCenter">
         <span class="app-logo">⚡ TOOLNAMP</span>
-        <span class="app-subtitle">HIGH FIDELITY</span>
-        <span class="app-credits-pill">Developed by <b>ToolNPlay.com</b> • Authors: <b>Pardeep Kumar & Harsh Suman</b></span>
+        <span class="app-subtitle">STUDIO HI-FI</span>
+        <span class="app-credits-pill">Modern Glass Edition • Developed by <b>ToolNPlay.com</b></span>
       </div>
 
       <div class="header-actions">
         <!-- Skin / Theme selector -->
         <select id="themeSelector" class="retro-select" title="Switch Theme Skin (25 Themes)">
+          <optgroup label="✨ Modern Glassmorphic (Featured)">
+            <option value="modern-glass" selected>💎 Modern Glass (Liquid Studio)</option>
+            <option value="mac-dark">🍏 Apple Glass Dark</option>
+            <option value="emerald-luxe">🟢 Emerald Luxe Glass</option>
+            <option value="midnight-oled">🖤 Midnight Glass OLED</option>
+            <option value="tokyo-night">🌌 Tokyo Night Glass</option>
+          </optgroup>
+          <optgroup label="⚡ Retro & Iconic Winamp">
+            <option value="winamp-classic">Winamp Classic (1998)</option>
+            <option value="platinum-mac">Mac OS System 7 (Platinum)</option>
+            <option value="matrix">The Matrix (Digital Rain)</option>
+            <option value="gameboy">Nintendo Game Boy (1989)</option>
+            <option value="amber-crt">Amber CRT (Phosphor 80s)</option>
+            <option value="vintage-woodgrain">70s Vintage Hi-Fi Woodgrain</option>
+          </optgroup>
           <optgroup label="🪔 Festivals & Celebrations">
             <option value="festival-diwali">🪔 Diwali (Festival of Lights)</option>
             <option value="festival-newyear">🎆 New Year 2026 Celebration</option>
@@ -34,24 +56,12 @@
             <option value="festival-shivratri">🔱 Maha Shivratri (Cosmic Void)</option>
             <option value="festival-halloween">🎃 Halloween (Jack-o-Lantern)</option>
           </optgroup>
-          <optgroup label="⚡ Retro & Iconic Winamp">
-            <option value="winamp-classic" selected>Winamp Classic (1998)</option>
-            <option value="platinum-mac">Mac OS System 7 (Platinum)</option>
-            <option value="matrix">The Matrix (Digital Rain)</option>
-            <option value="gameboy">Nintendo Game Boy (1989)</option>
-            <option value="amber-crt">Amber CRT (Phosphor 80s)</option>
-            <option value="vintage-woodgrain">70s Vintage Hi-Fi Woodgrain</option>
-          </optgroup>
           <optgroup label="🎨 Modern & Audiophile">
-            <option value="mac-dark">Modern Mac Glass (Dark)</option>
             <option value="cyberpunk">Cyberpunk 2077 Night City</option>
             <option value="vaporwave">Vaporwave Synth Aesthetics</option>
             <option value="synthwave">Outrun Synthwave Sunset</option>
             <option value="dracula">Dracula Dark Pro</option>
             <option value="nord">Nordic Arctic Frost</option>
-            <option value="tokyo-night">Tokyo Night Cyberpunk</option>
-            <option value="midnight-oled">Pure Pitch OLED Black</option>
-            <option value="emerald-luxe">Emerald Luxe Audiophile</option>
             <option value="solarized-dark">Solarized Dark Precision</option>
           </optgroup>
         </select>

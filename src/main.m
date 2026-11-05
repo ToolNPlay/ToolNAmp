@@ -208,7 +208,8 @@
     [self.window setTitlebarAppearsTransparent:YES];
     [self.window setTitleVisibility:NSWindowTitleHidden];
     [self.window setMovableByWindowBackground:NO]; // We handle custom dragging in header for 100% precision
-    [self.window setBackgroundColor:[NSColor colorWithCalibratedRed:0.12 green:0.13 blue:0.16 alpha:1.0]];
+    [self.window setOpaque:NO];
+    [self.window setBackgroundColor:[NSColor colorWithCalibratedRed:0.06 green:0.08 blue:0.13 alpha:0.85]];
     [self.window setDelegate:self];
     
     // Configure native green traffic light button to Zoom/Maximize smoothly to screen bounds
@@ -262,6 +263,13 @@
     
     if (@available(macOS 10.14, *)) {
         [self.webView setValue:@NO forKey:@"drawsBackground"];
+        
+        NSVisualEffectView *vibrantView = [[NSVisualEffectView alloc] initWithFrame:self.window.contentView.bounds];
+        [vibrantView setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
+        [vibrantView setMaterial:NSVisualEffectMaterialUnderWindowBackground];
+        [vibrantView setBlendingMode:NSVisualEffectBlendingModeBehindWindow];
+        [vibrantView setState:NSVisualEffectStateActive];
+        [self.window.contentView addSubview:vibrantView];
     }
     
     [self.window.contentView addSubview:self.webView];

@@ -225,7 +225,8 @@ class MacAmpVisualizer {
   // 1. Classic Winamp 2.x Spectrum Analyzer with segmented LEDs and falling peak markers
   drawClassicSpectrum(w, h, freqData) {
     const ctx = this.ctx;
-    ctx.fillStyle = '#090b0e';
+    ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = 'rgba(6, 9, 16, 0.65)';
     ctx.fillRect(0, 0, w, h);
     
     if (!freqData) return;
@@ -287,8 +288,8 @@ class MacAmpVisualizer {
   drawOscilloscope(w, h, timeData) {
     const ctx = this.ctx;
     
-    // Trail persistence fade
-    ctx.fillStyle = 'rgba(9, 11, 14, 0.25)';
+    // Trail persistence fade on glass
+    ctx.fillStyle = 'rgba(6, 9, 16, 0.35)';
     ctx.fillRect(0, 0, w, h);
     
     if (!timeData) return;
@@ -330,7 +331,8 @@ class MacAmpVisualizer {
   // 3. Cyberpunk Neon Bars with Floor Reflection
   drawCyberpunkBars(w, h, freqData) {
     const ctx = this.ctx;
-    ctx.fillStyle = '#05050a';
+    ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = 'rgba(6, 9, 16, 0.65)';
     ctx.fillRect(0, 0, w, h);
     
     if (!freqData) return;
@@ -373,7 +375,8 @@ class MacAmpVisualizer {
   // 4. Circular Radian Spectrum
   drawCircularRadian(w, h, freqData) {
     const ctx = this.ctx;
-    ctx.fillStyle = '#080810';
+    ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = 'rgba(6, 9, 16, 0.65)';
     ctx.fillRect(0, 0, w, h);
     
     if (!freqData) return;

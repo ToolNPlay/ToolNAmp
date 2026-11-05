@@ -144,11 +144,12 @@ class ToolNAmpEqualizer {
     const h = this.curveCanvas.height;
 
     // Clear
-    ctx.fillStyle = '#090b0e';
+    ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = 'rgba(6, 9, 16, 0.7)';
     ctx.fillRect(0, 0, w, h);
 
     // Center 0 dB baseline
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(0, h / 2);
@@ -157,7 +158,7 @@ class ToolNAmpEqualizer {
 
     if (!this.enabled) {
       // Flat disabled line
-      ctx.strokeStyle = '#555555';
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
       ctx.beginPath();
       ctx.moveTo(0, h / 2);
       ctx.lineTo(w, h / 2);
@@ -178,8 +179,15 @@ class ToolNAmpEqualizer {
       points.push({ x, y });
     }
 
-    ctx.strokeStyle = '#00e5ff';
-    ctx.lineWidth = 2;
+    const grad = ctx.createLinearGradient(0, 0, w, 0);
+    grad.addColorStop(0, '#38bdf8');
+    grad.addColorStop(0.5, '#818cf8');
+    grad.addColorStop(1, '#ec4899');
+
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = 2.5;
+    ctx.shadowColor = '#818cf8';
+    ctx.shadowBlur = 8;
     ctx.beginPath();
     ctx.moveTo(0, points[0].y);
 
@@ -190,6 +198,7 @@ class ToolNAmpEqualizer {
     }
     ctx.lineTo(w, points[points.length - 1].y);
     ctx.stroke();
+    ctx.shadowBlur = 0;
 
     // Fill subtle gradient under curve
     ctx.lineTo(w, h);
