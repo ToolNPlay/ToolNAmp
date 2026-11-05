@@ -13,6 +13,12 @@
 - (void)webView:(WKWebView *)webView startURLSchemeTask:(id<WKURLSchemeTask>)urlSchemeTask {
     NSURL *url = urlSchemeTask.request.URL;
     NSString *path = [url path];
+    if (![[NSFileManager defaultManager] fileExistsAtPath:path]) {
+        NSString *decoded = [path stringByRemovingPercentEncoding];
+        if (decoded && [[NSFileManager defaultManager] fileExistsAtPath:decoded]) {
+            path = decoded;
+        }
+    }
     
     // Check if file exists
     if (![[NSFileManager defaultManager] fileExistsAtPath:path]) {
@@ -170,6 +176,8 @@
 @property (assign, nonatomic) BOOL isMiniMode;
 @property (assign, nonatomic) BOOL isMaximized;
 @property (assign, nonatomic) BOOL isTerminating;
+@property (assign, nonatomic) BOOL isWebReady;
+@property (strong, nonatomic) NSArray<NSURL *> *pendingLaunchURLs;
 @property (assign, nonatomic) NSRect unmaximizedFrame;
 - (void)handleDroppedURLs:(NSArray<NSURL *> *)urls;
 - (void)addTracksToPlaylistFromURLs:(NSArray<NSURL *> *)urls;
@@ -520,6 +528,10 @@
     return YES;
 }
 
+- (void)application:(NSApplication *)application openURLs:(NSArray<NSURL *> *)urls {
+    [self handleDroppedURLs:urls];
+}
+
 #pragma mark - WKScriptMessageHandler
 - (void)userContentController:(WKUserContentController *)userContentController didReceiveScriptMessage:(WKScriptMessage *)message {
     if ([message.name isEqualToString:@"consoleLog"] && [message.body isKindOfClass:[NSDictionary class]]) {
@@ -537,6 +549,14 @@
     if ([action isEqualToString:@"log"]) {
         printf("[JS]: %s\n", [body[@"message"] UTF8String] ?: "");
         fflush(stdout);
+        self.isWebReady = YES;
+        if (self.pendingLaunchURLs.count > 0) {
+            NSArray *pending = self.pendingLaunchURLs;
+            self.pendingLaunchURLs = nil;
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                [self handleDroppedURLs:pending];
+            });
+        }
         return;
     }
     
@@ -598,6 +618,8 @@
         [self applyMiniMode:mini];
     } else if ([action isEqualToString:@"openFile"]) {
         [self handleOpenFile];
+    } else if ([action isEqualToString:@"importM3U"]) {
+        [self handleImportM3U];
     } else if ([action isEqualToString:@"openFolder"]) {
         [self handleOpenFolder];
     } else if ([action isEqualToString:@"autoScanMusic"]) {
@@ -693,6 +715,48 @@
     }];
 }
 
+- (void)importM3UFromURL:(NSURL *)fileURL {
+    if (!fileURL) return;
+    NSError *err = nil;
+    NSString *content = [NSString stringWithContentsOfURL:fileURL encoding:NSUTF8StringEncoding error:&err];
+    if (!content || err) {
+        content = [NSString stringWithContentsOfURL:fileURL encoding:NSISOLatin1StringEncoding error:nil];
+    }
+    if (!content) {
+        content = [NSString stringWithContentsOfURL:fileURL encoding:NSWindowsCP1252StringEncoding error:nil];
+    }
+    if (content) {
+        NSString *baseDir = [fileURL.path stringByDeletingLastPathComponent];
+        NSDictionary *payload = @{
+            @"content": content,
+            @"baseDir": baseDir ?: @""
+        };
+        NSData *jsonData = [NSJSONSerialization dataWithJSONObject:payload options:0 error:nil];
+        if (jsonData) {
+            NSString *jsonStr = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+            NSString *js = [NSString stringWithFormat:@"(window.toolNAmp || window.macAmp) && (window.toolNAmp || window.macAmp).handleNativeM3UImport(%@);", jsonStr];
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [self.webView evaluateJavaScript:js completionHandler:nil];
+            });
+        }
+    }
+}
+
+- (void)handleImportM3U {
+    NSOpenPanel *panel = [NSOpenPanel openPanel];
+    [panel setCanChooseFiles:YES];
+    [panel setCanChooseDirectories:NO];
+    [panel setAllowsMultipleSelection:NO];
+    [panel setAllowedFileTypes:@[@"m3u", @"m3u8", @"txt"]];
+    [panel setMessage:@"Select an M3U Playlist to import into ToolNAmp:"];
+    
+    [panel beginSheetModalForWindow:self.window completionHandler:^(NSModalResponse result) {
+        if (result == NSModalResponseOK && panel.URL) {
+            [self importM3UFromURL:panel.URL];
+        }
+    }];
+}
+
 - (void)handleOpenFolder {
     NSOpenPanel *panel = [NSOpenPanel openPanel];
     [panel setCanChooseFiles:NO];
@@ -769,6 +833,10 @@
 }
 
 - (void)handleDroppedURLs:(NSArray<NSURL *> *)urls {
+    if (!self.isWebReady) {
+        self.pendingLaunchURLs = urls;
+        return;
+    }
     NSMutableArray<NSURL *> *audioUrls = [NSMutableArray array];
     for (NSURL *url in urls) {
         NSNumber *isDir = nil;
@@ -777,7 +845,10 @@
             [self scanAndCollectFolder:url intoArray:audioUrls];
         } else {
             NSString *ext = [[url pathExtension] lowercaseString];
-            if ([@[@"mp3", @"wav", @"flac", @"ogg", @"m4a", @"aac", @"aiff", @"webm"] containsObject:ext]) {
+            if ([ext isEqualToString:@"m3u"] || [ext isEqualToString:@"m3u8"]) {
+                [self importM3UFromURL:url];
+                return;
+            } else if ([@[@"mp3", @"wav", @"flac", @"ogg", @"m4a", @"aac", @"aiff", @"webm"] containsObject:ext]) {
                 [audioUrls addObject:url];
             }
         }

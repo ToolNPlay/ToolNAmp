@@ -400,7 +400,7 @@ class ToolNAmpApp {
     document.getElementById('btnRemoveSelected')?.addEventListener('click', () => this.removeSelectedTrack());
     document.getElementById('btnClearPlaylist')?.addEventListener('click', () => this.clearPlaylist());
     document.getElementById('btnExportM3U')?.addEventListener('click', () => this.exportM3U());
-    document.getElementById('btnImportM3U')?.addEventListener('click', () => document.getElementById('m3uPicker')?.click());
+    document.getElementById('btnImportM3U')?.addEventListener('click', () => this.openM3UPicker());
 
     document.getElementById('sortSelect')?.addEventListener('change', (e) => {
       if (e.target.value) {
@@ -557,6 +557,9 @@ class ToolNAmpApp {
           break;
         case 'u': // Check for updates
           this.checkForUpdates(true);
+          break;
+        case 'a': // About ToolNAmp
+          this.showAboutModal();
           break;
         case 'w': // Toggle Window Shade
           this.toggleMiniMode();
@@ -1355,21 +1358,39 @@ class ToolNAmpApp {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
+  openM3UPicker() {
+    if (window.webkit && window.webkit.messageHandlers && (window.webkit.messageHandlers.toolnamp || window.webkit.messageHandlers.macamp)) {
+      this.sendNative('importM3U');
+    } else if (window.chrome && window.chrome.webview) {
+      this.sendNative('importM3U');
+    } else {
+      document.getElementById('m3uPicker')?.click();
+    }
+  }
+
+  handleNativeM3UImport(payload) {
+    if (!payload) return;
+    const content = typeof payload === 'string' ? payload : (payload.content || '');
+    const baseDir = typeof payload === 'object' ? (payload.baseDir || '') : '';
+    this.importM3UContent(content, baseDir);
+  }
+
   handleM3UPicked(files) {
     if (!files || files.length === 0) return;
     const file = files[0];
     const reader = new FileReader();
     reader.onload = (e) => {
-      this.importM3UContent(e.target.result);
+      this.importM3UContent(e.target.result, '');
     };
     reader.readAsText(file);
   }
 
-  importM3UContent(text) {
+  importM3UContent(text, baseDir = '') {
     if (!text) return;
     const lines = text.split(/\r?\n/);
     let pendingMeta = null;
     let addedCount = 0;
+    const initialCount = this.playlist.length;
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i].trim();
@@ -1393,24 +1414,40 @@ class ToolNAmpApp {
         }
         pendingMeta = { duration: dur, artist, title };
       } else if (!line.startsWith('#')) {
-        let url = line;
-        let title = pendingMeta?.title || url.split('/').pop().replace(/\.[^/.]+$/, "");
+        let rawPath = line.replace(/\\/g, '/'); // Normalize Windows backslashes
+
+        // Handle file:// URL
+        if (rawPath.startsWith('file://')) {
+          rawPath = decodeURI(rawPath.replace(/^file:\/\//, ''));
+        }
+
+        let fullPath = rawPath;
+        // If relative path and baseDir is known, combine them
+        if (baseDir && !rawPath.startsWith('/') && !rawPath.includes('://') && !/^[a-zA-Z]:\//.test(rawPath)) {
+          fullPath = baseDir.replace(/\/+$/, '') + '/' + rawPath.replace(/^\.\//, '');
+        }
+
+        let url = fullPath;
+        if (url.startsWith('/') && window.webkit) {
+          url = 'toolnamp-audio://local' + encodeURI(url);
+        }
+
+        const fileName = fullPath.split('/').pop().replace(/\.[^/.]+$/, "");
+        let title = pendingMeta?.title || fileName || "Track";
         let artist = pendingMeta?.artist || "Local Music";
         let duration = pendingMeta?.duration || 180;
 
-        // If local file path on macOS, adapt to custom scheme
-        if (url.startsWith('/') && window.webkit) {
-          url = 'toolnamp-audio://' + encodeURI(url);
-        }
+        let ext = fullPath.split('.').pop() || 'AUDIO';
+        if (ext.length > 5) ext = 'AUDIO';
 
         this.playlist.push({
           id: `track-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
           title,
           artist,
-          album: "Imported Playlist",
+          album: "Imported M3U",
           duration,
           url,
-          format: 'AUDIO',
+          format: ext.toUpperCase(),
           sampleRate: '44.1 kHz',
           bitrate: '320 kbps',
           size: '-'
@@ -1423,9 +1460,15 @@ class ToolNAmpApp {
     if (addedCount > 0) {
       this.updatePlaylistUI();
       this.saveCollection();
-      if (this.currentIndex === -1) {
-        this.loadTrack(0);
+      if (this.currentIndex === -1 || initialCount === 0) {
+        this.loadTrack(initialCount);
       }
+      const marquee = document.getElementById('trackMarquee');
+      if (marquee) {
+        marquee.textContent = `⚡ IMPORTED ${addedCount} TRACKS FROM M3U PLAYLIST`;
+      }
+    } else {
+      alert("No audio tracks found in M3U file.");
     }
   }
 
@@ -1500,8 +1543,17 @@ class ToolNAmpApp {
     if (icon) icon.textContent = '🔄';
     if (title) title.textContent = 'Checking for Updates...';
     if (msg) msg.textContent = 'Connecting to GitHub releases for ToolNAmp...';
-    if (notes) { notes.classList.add('hidden'); notes.textContent = ''; }
-    if (dlBtn) dlBtn.classList.add('hidden');
+    
+    // Explicitly hide release notes and download button initially
+    if (notes) {
+      notes.textContent = '';
+      notes.style.display = 'none';
+      notes.classList.add('hidden');
+    }
+    if (dlBtn) {
+      dlBtn.style.display = 'none';
+      dlBtn.classList.add('hidden');
+    }
 
     try {
       const controller = new AbortController();
@@ -1525,21 +1577,41 @@ class ToolNAmpApp {
         if (msg) msg.textContent = `A new version of ToolNAmp is available (Current: ${currentTag}).`;
         if (notes && data.body) {
           notes.textContent = data.body;
+          notes.style.display = 'block';
           notes.classList.remove('hidden');
         }
         if (dlBtn) {
           dlBtn.href = data.html_url || 'https://toolnplay.com/software/toolnamp';
+          dlBtn.style.display = 'inline-flex';
           dlBtn.classList.remove('hidden');
         }
       } else {
         if (icon) icon.textContent = '✅';
         if (title) title.textContent = 'ToolNAmp is Up to Date';
         if (msg) msg.textContent = `You are running the latest version (${currentTag}).`;
+        if (notes) {
+          notes.textContent = '';
+          notes.style.display = 'none';
+          notes.classList.add('hidden');
+        }
+        if (dlBtn) {
+          dlBtn.style.display = 'none';
+          dlBtn.classList.add('hidden');
+        }
       }
     } catch (err) {
       if (icon) icon.textContent = '⚠️';
       if (title) title.textContent = 'Update Check Unavailable';
       if (msg) msg.textContent = 'Unable to check for updates. Please check your internet connection or visit toolnplay.com/software/toolnamp.';
+      if (notes) {
+        notes.textContent = '';
+        notes.style.display = 'none';
+        notes.classList.add('hidden');
+      }
+      if (dlBtn) {
+        dlBtn.style.display = 'none';
+        dlBtn.classList.add('hidden');
+      }
     }
   }
 

@@ -1441,7 +1441,7 @@ body {
 
 .visualizer-container.maximized .vis-header {
   height: 38px;
-  padding: 0 16px;
+  padding: 0 16px 0 84px !important; /* 84px clearance ensures Close/Minimize/Maximize traffic lights never overlap text */
   background: rgba(15, 20, 32, 0.85);
   border-bottom: 1px solid rgba(255, 255, 255, 0.12);
   flex-shrink: 0;
@@ -3020,6 +3020,12 @@ kbd {
   line-height: 1.4;
 }
 
+/* Universal hidden utility */
+.hidden,
+[hidden] {
+  display: none !important;
+}
+
 .update-release-notes {
   background: rgba(0, 0, 0, 0.35);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -3035,6 +3041,14 @@ kbd {
   white-space: pre-wrap;
 }
 
+.update-release-notes.hidden,
+.update-release-notes[style*="display: none"] {
+  display: none !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
 .update-actions {
   display: flex;
   justify-content: center;
@@ -3046,6 +3060,11 @@ kbd {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+}
+
+.update-dl-btn.hidden,
+.update-dl-btn[style*="display: none"] {
+  display: none !important;
 }
 
 /* ==========================================================================
@@ -3076,6 +3095,10 @@ kbd {
   /* Hide macOS native spacer on mobile */
   .native-traffic-spacer {
     display: none !important;
+  }
+
+  .visualizer-container.maximized .vis-header {
+    padding-left: 12px !important;
   }
 
   .app-header {

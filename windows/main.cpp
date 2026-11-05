@@ -15,6 +15,7 @@
 #include <vector>
 #include <filesystem>
 #include <iostream>
+#include <fstream>
 
 #include "webview.h"
 
@@ -198,6 +199,27 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                         json += "]";
 
                         std::string script = "if (window.toolNAmp) { window.toolNAmp.addTracksBatch(JSON.parse('" + escape_json(json) + "')); }";
+                        w.eval(script);
+                    }
+                }
+            } else if (req.find("\"importM3U\"") != std::string::npos) {
+                wchar_t fileBuf[MAX_PATH] = {0};
+                OPENFILENAMEW ofn = {0};
+                ofn.lStructSize = sizeof(ofn);
+                ofn.hwndOwner = g_hWnd;
+                ofn.lpstrFilter = L"M3U Playlists (*.m3u;*.m3u8)\0*.m3u;*.m3u8\0All Files (*.*)\0*.*\0";
+                ofn.lpstrFile = fileBuf;
+                ofn.nMaxFile = MAX_PATH;
+                ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST;
+                if (GetOpenFileNameW(&ofn)) {
+                    std::ifstream ifs(fileBuf);
+                    if (ifs.is_open()) {
+                        std::string content((std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>()));
+                        fs::path m3uPath(fileBuf);
+                        std::string baseDir = m3uPath.parent_path().string();
+                        for (char &c : baseDir) if (c == '\\') c = '/';
+                        std::string json = "{\"content\":\"" + escape_json(content) + "\",\"baseDir\":\"" + escape_json(baseDir) + "\"}";
+                        std::string script = "if (window.toolNAmp) { window.toolNAmp.handleNativeM3UImport(" + json + "); }";
                         w.eval(script);
                     }
                 }
