@@ -2,7 +2,7 @@
    TOOLNAMP - HIGH FIDELITY AUDIO PLAYER STYLESHEET
    Flagship Modern Glassmorphic Edition with 25 Themes
    Developed by ToolNPlay.com
-   Authors: Pardeep Kumar & Harsh Suman
+   Developers: Pardeep Kumar & Harsh Suman
    ========================================================================== */
 
 /* --- ROOT THEME VARIABLES (DEFAULT: MODERN GLASS STUDIO) --- */
@@ -1407,18 +1407,59 @@ body {
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Maximized Theater Mode (Fills window below titlebar) */
+/* Maximized Theater & Fullscreen Mode */
 .visualizer-container.maximized {
-  position: absolute;
-  top: 36px;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 800;
-  border: 1px solid var(--accent-primary);
-  border-radius: 0;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.95);
-  background: var(--vis-bg);
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 999999 !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+  background: rgba(8, 12, 22, 0.98) !important;
+  backdrop-filter: blur(40px) saturate(200%);
+  -webkit-backdrop-filter: blur(40px) saturate(200%);
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* In compact normal mode, streamline header so chips don't overflow */
+.visualizer-container:not(.maximized) .vis-mode-chips {
+  display: none !important;
+}
+
+.visualizer-container:not(.maximized) .vis-expand-btn .vis-expand-text {
+  display: none;
+}
+
+.visualizer-container:not(.maximized) .vis-expand-btn {
+  padding: 2px 6px;
+}
+
+.visualizer-container.maximized .vis-header {
+  height: 38px;
+  padding: 0 16px;
+  background: rgba(15, 20, 32, 0.85);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  flex-shrink: 0;
+}
+
+.visualizer-container.maximized .vis-canvas-wrapper {
+  height: calc(100vh - 38px - 60px) !important;
+  flex: 1;
+}
+
+.visualizer-container.maximized .vis-theater-bar {
+  position: relative !important;
+  height: 60px;
+  background: rgba(10, 14, 24, 0.95);
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 0 20px;
+  display: flex !important;
+  flex-shrink: 0;
 }
 
 .vis-header {
@@ -2846,6 +2887,170 @@ kbd {
 
 .modal-ok-btn:active {
   transform: translateY(1px);
+}
+
+/* --- FULLSCREEN & EXPANDED VISUALIZER CONTROLS --- */
+.vis-expand-btn.fullscreen-btn {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: rgba(16, 185, 129, 0.45);
+  color: #34d399;
+}
+
+.vis-expand-btn.fullscreen-btn:hover {
+  background: rgba(16, 185, 129, 0.35);
+  border-color: rgba(16, 185, 129, 0.7);
+  box-shadow: 0 0 12px rgba(52, 211, 153, 0.45);
+}
+
+/* --- COLLAPSE VOID WHEN ALL BOTTOM MODULES (EQ, FX, PL) ARE HIDDEN --- */
+.app-container.no-bottom-modules {
+  height: auto !important;
+  min-height: auto !important;
+}
+
+.app-container.no-bottom-modules .main-player {
+  flex: 0 0 auto !important;
+  padding-bottom: 12px;
+}
+
+/* --- CLOSE / EXIT CONFIRMATION MODAL --- */
+.close-modal-box {
+  max-width: 420px;
+  text-align: center;
+}
+
+.close-confirm-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.close-confirm-icon {
+  font-size: 38px;
+  filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.5));
+}
+
+.close-confirm-msg {
+  font-size: 13px;
+  color: #e2e8f0;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.close-confirm-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.modal-action-btn {
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: 1px solid transparent;
+}
+
+.modal-action-btn.bg-btn {
+  background: linear-gradient(135deg, #059669, #10b981);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+}
+
+.modal-action-btn.bg-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.5);
+}
+
+.modal-action-btn.exit-btn {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #f87171;
+}
+
+.modal-action-btn.exit-btn:hover {
+  background: rgba(239, 68, 68, 0.25);
+  color: #ffffff;
+}
+
+.modal-action-btn.cancel-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #94a3b8;
+}
+
+.modal-action-btn.cancel-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #f1f5f9;
+}
+
+/* --- UPDATE CHECK MODAL --- */
+.update-modal-box {
+  max-width: 440px;
+  text-align: center;
+}
+
+.update-status-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.update-icon {
+  font-size: 34px;
+}
+
+.update-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 0;
+}
+
+.update-msg {
+  font-size: 12px;
+  color: #94a3b8;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.update-release-notes {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 12px;
+  max-height: 150px;
+  overflow-y: auto;
+  font-size: 11px;
+  color: #cbd5e1;
+  text-align: left;
+  line-height: 1.45;
+  margin-bottom: 16px;
+  white-space: pre-wrap;
+}
+
+.update-release-notes.hidden,
+.update-dl-btn.hidden {
+  display: none !important;
+}
+
+.update-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.update-dl-btn {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 /* ==========================================================================

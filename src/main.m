@@ -169,6 +169,7 @@
 @property (assign, nonatomic) NSRect savedWindowFrame;
 @property (assign, nonatomic) BOOL isMiniMode;
 @property (assign, nonatomic) BOOL isMaximized;
+@property (assign, nonatomic) BOOL isTerminating;
 @property (assign, nonatomic) NSRect unmaximizedFrame;
 - (void)handleDroppedURLs:(NSArray<NSURL *> *)urls;
 - (void)addTracksToPlaylistFromURLs:(NSArray<NSURL *> *)urls;
@@ -381,7 +382,7 @@
     [alert setMessageText:@"⚡ ToolNAmp v1.0"];
     [alert setInformativeText:@"The Ultimate Retro High-Fidelity Music Player\n\n"
                               @"• Developed by: ToolNPlay.com\n"
-                              @"• Authors: Pardeep Kumar & Harsh Suman\n\n"
+                              @"• Developers: Pardeep Kumar & Harsh Suman\n\n"
                               @"Features:\n"
                               @"• 10-Band Graphic Equalizer with Presets & Preamp\n"
                               @"• 5 Real-Time 60fps Audio Visualizers\n"
@@ -503,6 +504,22 @@
     }
 }
 
+- (BOOL)windowShouldClose:(NSWindow *)sender {
+    if (self.isTerminating) {
+        return YES;
+    }
+    // Check with web UI whether audio is playing to show background playback / exit confirmation
+    [self.webView evaluateJavaScript:@"(window.toolNAmp || window.macAmp) && (window.toolNAmp || window.macAmp).requestClose();" completionHandler:nil];
+    return NO;
+}
+
+- (BOOL)applicationShouldHandleReopen:(NSApplication *)sender hasVisibleWindows:(BOOL)flag {
+    if (!flag) {
+        [self.window makeKeyAndOrderFront:nil];
+    }
+    return YES;
+}
+
 #pragma mark - WKScriptMessageHandler
 - (void)userContentController:(WKUserContentController *)userContentController didReceiveScriptMessage:(WKScriptMessage *)message {
     if ([message.name isEqualToString:@"consoleLog"] && [message.body isKindOfClass:[NSDictionary class]]) {
@@ -523,9 +540,36 @@
         return;
     }
     
-    if ([action isEqualToString:@"closeWindow"]) {
+    if ([action isEqualToString:@"closeWindow"] || [action isEqualToString:@"confirmClose"]) {
+        self.isTerminating = YES;
         [self.window close];
         [NSApp terminate:nil];
+    } else if ([action isEqualToString:@"playInBackground"]) {
+        [self.window orderOut:nil];
+    } else if ([action isEqualToString:@"setWindowHeight"]) {
+        CGFloat newHeight = [body[@"height"] doubleValue];
+        if (newHeight >= 40 && !self.isMaximized) {
+            NSRect frame = self.window.frame;
+            CGFloat diff = newHeight - frame.size.height;
+            NSRect newFrame = NSMakeRect(frame.origin.x, frame.origin.y - diff, frame.size.width, newHeight);
+            [self.window setMinSize:NSMakeSize(540, MIN(newHeight, 220))];
+            [self.window setFrame:newFrame display:YES animate:YES];
+        }
+    } else if ([action isEqualToString:@"exportM3U"]) {
+        NSString *content = body[@"content"] ?: @"";
+        NSString *filename = body[@"filename"] ?: @"toolnamp-playlist.m3u";
+        NSSavePanel *savePanel = [NSSavePanel savePanel];
+        [savePanel setTitle:@"Export ToolNAmp Playlist (M3U)"];
+        [savePanel setAllowedFileTypes:@[@"m3u", @"m3u8"]];
+        [savePanel setNameFieldStringValue:filename];
+        [savePanel beginSheetModalForWindow:self.window completionHandler:^(NSModalResponse result) {
+            if (result == NSModalResponseOK) {
+                NSURL *url = [savePanel URL];
+                if (url) {
+                    [content writeToURL:url atomically:YES encoding:NSUTF8StringEncoding error:nil];
+                }
+            }
+        }];
     } else if ([action isEqualToString:@"minimizeWindow"]) {
         [self.window miniaturize:nil];
     } else if ([action isEqualToString:@"zoomWindow"] || [action isEqualToString:@"maximizeWindow"]) {

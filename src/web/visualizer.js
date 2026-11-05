@@ -77,6 +77,23 @@ class MacAmpVisualizer {
       });
     }
 
+    // Fullscreen buttons
+    const btnFullscreen = document.getElementById('btnFullscreenVis');
+    if (btnFullscreen) {
+      btnFullscreen.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.toggleFullscreen();
+      });
+    }
+
+    const btnTheaterFullscreen = document.getElementById('btnTheaterFullscreen');
+    if (btnTheaterFullscreen) {
+      btnTheaterFullscreen.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.toggleFullscreen();
+      });
+    }
+
     // Theater bar restore button
     if (btnRestore) {
       btnRestore.addEventListener('click', (e) => {
@@ -84,6 +101,13 @@ class MacAmpVisualizer {
         this.toggleMaximize(false);
       });
     }
+
+    // Native fullscreen change handler
+    document.addEventListener('fullscreenchange', () => {
+      if (!document.fullscreenElement && this.isMaximized && !this.wasStageOnly) {
+        this.toggleMaximize(false);
+      }
+    });
 
     // Theater transport buttons
     document.getElementById('btnTheaterPrev')?.addEventListener('click', (e) => {
@@ -131,7 +155,32 @@ class MacAmpVisualizer {
     if (!container) return;
 
     this.isMaximized = (typeof forceState === 'boolean') ? forceState : !this.isMaximized;
-    container.classList.toggle('maximized', this.isMaximized);
+
+    if (this.isMaximized) {
+      if (!this.placeholder) {
+        this.placeholder = document.createElement('div');
+        this.placeholder.className = 'visualizer-placeholder';
+        this.placeholder.style.flex = '1.6';
+        this.placeholder.style.minHeight = '74px';
+        this.placeholder.style.borderRadius = '14px';
+        this.placeholder.style.background = 'rgba(255, 255, 255, 0.02)';
+      }
+      if (container.parentNode && container.parentNode !== document.body) {
+        container.parentNode.insertBefore(this.placeholder, container);
+        document.body.appendChild(container);
+      }
+      container.classList.add('maximized');
+    } else {
+      container.classList.remove('maximized');
+      if (this.placeholder && this.placeholder.parentNode) {
+        this.placeholder.parentNode.insertBefore(container, this.placeholder);
+        this.placeholder.remove();
+        this.placeholder = null;
+      }
+      if (document.fullscreenElement) {
+        try { document.exitFullscreen(); } catch (e) {}
+      }
+    }
 
     const maxIcon = document.getElementById('visMaxIcon');
     const maxText = document.getElementById('visMaxText');
@@ -147,7 +196,7 @@ class MacAmpVisualizer {
       }
     } else {
       if (maxIcon) maxIcon.textContent = '⤢';
-      if (maxText) maxText.textContent = 'MAXIMIZE';
+      if (maxText) maxText.textContent = 'STAGE';
       if (btnMax) btnMax.title = "1-Click Maximize Visualizer to Full Stage (F)";
     }
 
@@ -157,11 +206,40 @@ class MacAmpVisualizer {
       this.peaks = new Array(targetBars).fill(0);
     }
 
-    // Force canvas dimension update immediately
+    // Force canvas dimension update immediately and on next frame
+    this.updateCanvasDimensions();
+    requestAnimationFrame(() => this.updateCanvasDimensions());
+  }
+
+  toggleFullscreen() {
+    this.wasStageOnly = false;
+    if (!this.isMaximized) {
+      this.toggleMaximize(true);
+    }
+    if (!document.fullscreenElement) {
+      const el = document.documentElement;
+      const rfs = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+      if (rfs) {
+        rfs.call(el).catch(err => {
+          console.log("Fullscreen request failed:", err);
+        });
+      }
+    } else {
+      const efs = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+      if (efs) {
+        efs.call(document).catch(err => {});
+      }
+    }
+  }
+
+  updateCanvasDimensions() {
+    if (!this.canvas) return;
     const rect = this.canvas.getBoundingClientRect();
     const dpr = window.devicePixelRatio || 1;
-    this.canvas.width = Math.round(rect.width * dpr);
-    this.canvas.height = Math.round(rect.height * dpr);
+    if (rect.width > 0 && rect.height > 0) {
+      this.canvas.width = Math.round(rect.width * dpr);
+      this.canvas.height = Math.round(rect.height * dpr);
+    }
   }
 
   initStars(count) {

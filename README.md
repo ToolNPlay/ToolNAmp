@@ -6,7 +6,7 @@
 [![Audio](https://img.shields.io/badge/Audio-WebAudio%20%2B%20DSP%20Engine-cyan.svg)](https://toolnplay.com)
 
 > **Developed by**: [ToolNPlay.com](https://toolnplay.com) • [GitHub](https://github.com/toolnplay)  
-> **Authors**:  
+> **Developers**:  
 > - **Pardeep Kumar** — [LinkedIn](https://www.linkedin.com/in/pardeeppatel/) • [GitHub](https://github.com/pardeeppatel)  
 > - **Harsh Suman** — [LinkedIn](https://www.linkedin.com/in/harshsuman/)  
 > **Official Landing Page**: [toolnplay.com/software/toolnamp](https://toolnplay.com/software/toolnamp)  

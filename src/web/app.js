@@ -2,11 +2,12 @@
  * ToolNAmp Main Application Controller
  * Handles Playlist, Drag & Drop, Playback State,
  * UI Updates, Cross-Platform Native Bridge, and Keyboard Shortcuts.
- * Developed by ToolNPlay.com • Authors: Pardeep Kumar & Harsh Suman
+ * Developed by ToolNPlay.com • Developers: Pardeep Kumar & Harsh Suman
  */
 
 class ToolNAmpApp {
   constructor() {
+    this.version = 'v1.0.0';
     this.playlist = [];
     this.currentIndex = -1;
     this.isPlaying = false;
@@ -36,6 +37,7 @@ class ToolNAmpApp {
     this.loadSavedTheme();
     this.startVUMeterLoop();
     this.initMediaSession();
+    this.updateWindowLayout();
 
     // Load persisted collection from history
     const restored = this.loadSavedCollection();
@@ -185,15 +187,19 @@ class ToolNAmpApp {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         e.preventDefault();
-        this.sendNative(action);
+        if (action === 'requestClose') {
+          this.requestClose();
+        } else {
+          this.sendNative(action);
+        }
       });
     };
 
-    setupWinBtn('btnWinClose', 'closeWindow');
+    setupWinBtn('btnWinClose', 'requestClose');
     setupWinBtn('btnWinMin', 'minimizeWindow');
     setupWinBtn('btnWinZoom', 'zoomWindow');
 
-    setupWinBtn('miniBtnWinClose', 'closeWindow');
+    setupWinBtn('miniBtnWinClose', 'requestClose');
     setupWinBtn('miniBtnWinMin', 'minimizeWindow');
     setupWinBtn('miniBtnWinZoom', 'zoomWindow');
     
@@ -308,6 +314,7 @@ class ToolNAmpApp {
     btnEQ?.addEventListener('click', () => {
       eqSec.classList.toggle('hidden');
       btnEQ.classList.toggle('active', !eqSec.classList.contains('hidden'));
+      this.updateWindowLayout();
     });
 
     const btnPL = document.getElementById('btnTogglePL');
@@ -315,6 +322,7 @@ class ToolNAmpApp {
     btnPL?.addEventListener('click', () => {
       plSec.classList.toggle('hidden');
       btnPL.classList.toggle('active', !plSec.classList.contains('hidden'));
+      this.updateWindowLayout();
     });
 
     const btnFX = document.getElementById('btnToggleFX');
@@ -322,6 +330,7 @@ class ToolNAmpApp {
     btnFX?.addEventListener('click', () => {
       fxSec.classList.toggle('hidden');
       btnFX.classList.toggle('active', !fxSec.classList.contains('hidden'));
+      this.updateWindowLayout();
     });
 
     const btnShuf = document.getElementById('btnShuffle');
@@ -408,6 +417,24 @@ class ToolNAmpApp {
     document.getElementById('btnAbout')?.addEventListener('click', () => this.showAboutModal());
     document.getElementById('btnCloseAboutModal')?.addEventListener('click', () => this.hideAboutModal());
     document.getElementById('btnAboutOk')?.addEventListener('click', () => this.hideAboutModal());
+
+    // Update Check Modal
+    document.getElementById('btnCheckUpdateFooter')?.addEventListener('click', () => this.checkForUpdates(true));
+    document.getElementById('btnCheckUpdateAbout')?.addEventListener('click', () => this.checkForUpdates(true));
+    document.getElementById('btnCloseUpdateModal')?.addEventListener('click', () => this.hideUpdateModal());
+    document.getElementById('btnUpdateOk')?.addEventListener('click', () => this.hideUpdateModal());
+
+    // Close Confirmation Modal
+    document.getElementById('btnClosePlayBackground')?.addEventListener('click', () => {
+      this.hideCloseConfirmModal();
+      this.sendNative('playInBackground', {});
+    });
+    document.getElementById('btnCloseExitApp')?.addEventListener('click', () => {
+      this.hideCloseConfirmModal();
+      this.confirmClose();
+    });
+    document.getElementById('btnCloseCancel')?.addEventListener('click', () => this.hideCloseConfirmModal());
+    document.getElementById('btnCloseConfirmClose')?.addEventListener('click', () => this.hideCloseConfirmModal());
 
     // File input change handlers
     document.getElementById('filePicker')?.addEventListener('change', (e) => this.handleFilesPicked(e.target.files));
@@ -528,6 +555,9 @@ class ToolNAmpApp {
         case 'p': // Toggle Playlist
           document.getElementById('btnTogglePL')?.click();
           break;
+        case 'u': // Check for updates
+          this.checkForUpdates(true);
+          break;
         case 'w': // Toggle Window Shade
           this.toggleMiniMode();
           break;
@@ -546,6 +576,10 @@ class ToolNAmpApp {
             window.visualizer.toggleMaximize(false);
           } else {
             this.hideAboutModal();
+            this.hideCloseConfirmModal();
+            this.hideUpdateModal();
+            this.hideInfoModal();
+            this.hideShortcutsModal();
           }
           break;
         case '1': this.setTheme('festival-diwali'); break;
@@ -1284,16 +1318,41 @@ class ToolNAmpApp {
 
   // Export / Import M3U
   exportM3U() {
-    if (this.playlist.length === 0) return;
+    if (!this.playlist || this.playlist.length === 0) {
+      alert("Playlist is empty! Add songs before exporting M3U.");
+      return;
+    }
+
     let content = "#EXTM3U\n";
     this.playlist.forEach(t => {
-      content += `#EXTINF:${Math.round(t.duration)},${t.artist} - ${t.title}\n${t.url}\n`;
+      const dur = Math.round(t.duration || 0);
+      const artist = t.artist || "Unknown Artist";
+      const title = t.title || "Unknown Title";
+      content += `#EXTINF:${dur},${artist} - ${title}\n`;
+      // Clean custom scheme for universal playback if local file
+      let cleanUrl = t.url || "";
+      if (cleanUrl.startsWith('toolnamp-audio://') || cleanUrl.startsWith('macamp-audio://')) {
+        cleanUrl = decodeURIComponent(cleanUrl.replace(/^(toolnamp|macamp)-audio:\/\//, ''));
+      }
+      content += `${cleanUrl}\n`;
     });
-    const blob = new Blob([content], { type: 'audio/x-mpegurl' });
+
+    // Check if running on native macOS Cocoa bridge
+    if (window.webkit && window.webkit.messageHandlers && (window.webkit.messageHandlers.toolnamp || window.webkit.messageHandlers.macamp)) {
+      this.sendNative('exportM3U', { content, filename: 'toolnamp-playlist.m3u' });
+      return;
+    }
+
+    // Universal Web / Blob fallback
+    const blob = new Blob([content], { type: 'audio/x-mpegurl;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'macamp-playlist.m3u';
+    a.href = url;
+    a.download = 'toolnamp-playlist.m3u';
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
   handleM3UPicked(files) {
@@ -1301,27 +1360,203 @@ class ToolNAmpApp {
     const file = files[0];
     const reader = new FileReader();
     reader.onload = (e) => {
-      const lines = e.target.result.split('\n');
-      lines.forEach(line => {
-        const trimmed = line.trim();
-        if (trimmed && !trimmed.startsWith('#') && this.isAudioFile(trimmed)) {
-          this.playlist.push({
-            id: `track-${Date.now()}-${Math.random()}`,
-            title: trimmed.split('/').pop().replace(/\.[^/.]+$/, ""),
-            artist: "M3U Track",
-            album: "Imported Playlist",
-            duration: 180,
-            url: trimmed,
-            format: 'AUDIO',
-            sampleRate: '44.1 kHz',
-            bitrate: '320 kbps',
-            size: '-'
-          });
-        }
-      });
-      this.updatePlaylistUI();
+      this.importM3UContent(e.target.result);
     };
     reader.readAsText(file);
+  }
+
+  importM3UContent(text) {
+    if (!text) return;
+    const lines = text.split(/\r?\n/);
+    let pendingMeta = null;
+    let addedCount = 0;
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+
+      if (line.startsWith('#EXTINF:')) {
+        const info = line.substring(8);
+        const commaIdx = info.indexOf(',');
+        let dur = 180;
+        let titleArtist = info;
+        if (commaIdx !== -1) {
+          dur = parseInt(info.substring(0, commaIdx), 10) || 180;
+          titleArtist = info.substring(commaIdx + 1).trim();
+        }
+        let artist = "M3U Track";
+        let title = titleArtist;
+        if (titleArtist.includes(' - ')) {
+          const parts = titleArtist.split(' - ');
+          artist = parts[0].trim();
+          title = parts.slice(1).join(' - ').trim();
+        }
+        pendingMeta = { duration: dur, artist, title };
+      } else if (!line.startsWith('#')) {
+        let url = line;
+        let title = pendingMeta?.title || url.split('/').pop().replace(/\.[^/.]+$/, "");
+        let artist = pendingMeta?.artist || "Local Music";
+        let duration = pendingMeta?.duration || 180;
+
+        // If local file path on macOS, adapt to custom scheme
+        if (url.startsWith('/') && window.webkit) {
+          url = 'toolnamp-audio://' + encodeURI(url);
+        }
+
+        this.playlist.push({
+          id: `track-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          title,
+          artist,
+          album: "Imported Playlist",
+          duration,
+          url,
+          format: 'AUDIO',
+          sampleRate: '44.1 kHz',
+          bitrate: '320 kbps',
+          size: '-'
+        });
+        addedCount++;
+        pendingMeta = null;
+      }
+    }
+
+    if (addedCount > 0) {
+      this.updatePlaylistUI();
+      this.saveCollection();
+      if (this.currentIndex === -1) {
+        this.loadTrack(0);
+      }
+    }
+  }
+
+  // --- RESPONSIVE LAYOUT & AUTO-SHRINK WHEN MODULES ARE HIDDEN ---
+  updateWindowLayout() {
+    const eqSec = document.getElementById('equalizerSection');
+    const plSec = document.getElementById('playlistSection');
+    const fxSec = document.getElementById('effectsSection');
+    const appContainer = document.getElementById('appContainer');
+
+    const eqHidden = !eqSec || eqSec.classList.contains('hidden');
+    const plHidden = !plSec || plSec.classList.contains('hidden');
+    const fxHidden = !fxSec || fxSec.classList.contains('hidden');
+
+    const allBottomHidden = eqHidden && plHidden && fxHidden;
+    if (appContainer) {
+      appContainer.classList.toggle('no-bottom-modules', allBottomHidden);
+    }
+
+    // Dynamic target height for native macOS/Windows window
+    let targetHeight = 640;
+    if (this.isMiniMode) {
+      targetHeight = 44;
+    } else if (allBottomHidden) {
+      targetHeight = 224; // Compact core player only (header + display + seek + controls)
+    } else if (plHidden && !eqHidden && fxHidden) {
+      targetHeight = 420; // Core + EQ
+    } else if (!plHidden && eqHidden && fxHidden) {
+      targetHeight = 620; // Core + Playlist (default)
+    } else {
+      targetHeight = 720; // Multiple modules active
+    }
+
+    this.sendNative('setWindowHeight', { height: targetHeight });
+  }
+
+  // --- CLOSE CONFIRMATION / BACKGROUND PLAYBACK ---
+  requestClose() {
+    if (this.isPlaying) {
+      const modal = document.getElementById('closeConfirmModal');
+      if (modal) {
+        modal.classList.remove('hidden');
+        return;
+      }
+    }
+    this.confirmClose();
+  }
+
+  confirmClose() {
+    this.stop();
+    this.sendNative('confirmClose', {});
+    this.sendNative('closeWindow', {});
+    try { window.close(); } catch (e) {}
+  }
+
+  hideCloseConfirmModal() {
+    document.getElementById('closeConfirmModal')?.classList.add('hidden');
+  }
+
+  // --- CHECK FOR UPDATES ---
+  async checkForUpdates(manual = false) {
+    const modal = document.getElementById('updateModal');
+    const icon = document.getElementById('updateIcon');
+    const title = document.getElementById('updateTitle');
+    const msg = document.getElementById('updateMessage');
+    const notes = document.getElementById('updateReleaseNotes');
+    const dlBtn = document.getElementById('btnDownloadUpdate');
+
+    if (!modal) return;
+    modal.classList.remove('hidden');
+
+    if (icon) icon.textContent = '🔄';
+    if (title) title.textContent = 'Checking for Updates...';
+    if (msg) msg.textContent = 'Connecting to GitHub releases for ToolNAmp...';
+    if (notes) { notes.classList.add('hidden'); notes.textContent = ''; }
+    if (dlBtn) dlBtn.classList.add('hidden');
+
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 6000);
+      const res = await fetch('https://api.github.com/repos/ToolNPlay/ToolNAmp/releases/latest', {
+        headers: { 'Accept': 'application/vnd.github.v3+json' },
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      const latestTag = data.tag_name || data.name || '';
+      const currentTag = this.version || 'v1.0.0';
+
+      const isNewer = latestTag && latestTag !== currentTag && this.compareVersions(latestTag, currentTag) > 0;
+
+      if (isNewer) {
+        if (icon) icon.textContent = '🎉';
+        if (title) title.textContent = `New Update Available: ${latestTag}`;
+        if (msg) msg.textContent = `A new version of ToolNAmp is available (Current: ${currentTag}).`;
+        if (notes && data.body) {
+          notes.textContent = data.body;
+          notes.classList.remove('hidden');
+        }
+        if (dlBtn) {
+          dlBtn.href = data.html_url || 'https://toolnplay.com/software/toolnamp';
+          dlBtn.classList.remove('hidden');
+        }
+      } else {
+        if (icon) icon.textContent = '✅';
+        if (title) title.textContent = 'ToolNAmp is Up to Date';
+        if (msg) msg.textContent = `You are running the latest version (${currentTag}).`;
+      }
+    } catch (err) {
+      if (icon) icon.textContent = '⚠️';
+      if (title) title.textContent = 'Update Check Unavailable';
+      if (msg) msg.textContent = 'Unable to check for updates. Please check your internet connection or visit toolnplay.com/software/toolnamp.';
+    }
+  }
+
+  compareVersions(v1, v2) {
+    const clean1 = (v1 || '').replace(/^v/, '').split('.').map(Number);
+    const clean2 = (v2 || '').replace(/^v/, '').split('.').map(Number);
+    for (let i = 0; i < Math.max(clean1.length, clean2.length); i++) {
+      const num1 = clean1[i] || 0;
+      const num2 = clean2[i] || 0;
+      if (num1 > num2) return 1;
+      if (num1 < num2) return -1;
+    }
+    return 0;
+  }
+
+  hideUpdateModal() {
+    document.getElementById('updateModal')?.classList.add('hidden');
   }
 
   // --- WINDOW SHADE / MINI MODE ---

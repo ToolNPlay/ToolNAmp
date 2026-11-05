@@ -37,7 +37,7 @@ import java.util.ArrayList;
  * ToolNAmp Android Main Activity
  * High-performance retro music player with background audio playback,
  * MediaStore music library scanning, and SAF folder scanning.
- * Developed by ToolNPlay.com • Authors: Pardeep Kumar & Harsh Suman
+ * Developed by ToolNPlay.com • Developers: Pardeep Kumar & Harsh Suman
  */
 public class MainActivity extends Activity {
 
@@ -379,8 +379,10 @@ public class MainActivity extends Activity {
                 JSONObject json = new JSONObject(jsonStr);
                 String action = json.optString("action");
 
-                if ("closeWindow".equals(action)) {
-                    finish();
+                if ("closeWindow".equals(action) || "confirmClose".equals(action)) {
+                    runOnUiThread(() -> finish());
+                } else if ("playInBackground".equals(action)) {
+                    runOnUiThread(() -> moveTaskToBack(true));
                 } else if ("saveCollection".equals(action)) {
                     String data = json.optString("data");
                     saveCollectionFile(data);
@@ -414,10 +416,9 @@ public class MainActivity extends Activity {
 
     @Override
     public void onBackPressed() {
-        if (webView != null && webView.canGoBack()) {
-            webView.goBack();
+        if (webView != null) {
+            webView.evaluateJavascript("(window.toolNAmp || window.macAmp) && (window.toolNAmp || window.macAmp).requestClose();", null);
         } else {
-            // Minimize to background instead of quitting so audio keeps playing
             moveTaskToBack(true);
         }
     }

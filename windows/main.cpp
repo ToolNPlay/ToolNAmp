@@ -1,6 +1,6 @@
 /**
  * ToolNAmp Native Windows Host (Ultra-Lightweight Win32 WebView2)
- * Developed by ToolNPlay.com • Authors: Pardeep Kumar & Harsh Suman
+ * Developed by ToolNPlay.com • Developers: Pardeep Kumar & Harsh Suman
  * 
  * Compiles to a ~150 KB standalone native Windows executable.
  * Uses the pre-installed Microsoft Edge WebView2 runtime on Windows 10 & 11.
@@ -118,8 +118,20 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         // 3. Register Native Action Bridge
         w.bind("sendNativeAction", [&](const std::string &req) -> std::string {
             // req is a JSON array string containing args passed from JS, e.g. ["openFile", {}]
-            if (req.find("\"closeWindow\"") != std::string::npos) {
+            if (req.find("\"confirmClose\"") != std::string::npos || req.find("\"closeWindow\"") != std::string::npos) {
                 w.terminate();
+            } else if (req.find("\"playInBackground\"") != std::string::npos) {
+                if (g_hWnd) ShowWindow(g_hWnd, SW_MINIMIZE);
+            } else if (req.find("\"setWindowHeight\"") != std::string::npos) {
+                if (g_hWnd && !IsZoomed(g_hWnd)) {
+                    size_t pos = req.find("\"height\":");
+                    if (pos != std::string::npos) {
+                        int h = std::stoi(req.substr(pos + 9));
+                        RECT r;
+                        GetWindowRect(g_hWnd, &r);
+                        SetWindowPos(g_hWnd, NULL, r.left, r.top, r.right - r.left, h, SWP_NOZORDER | SWP_NOMOVE);
+                    }
+                }
             } else if (req.find("\"minimizeWindow\"") != std::string::npos) {
                 if (g_hWnd) ShowWindow(g_hWnd, SW_MINIMIZE);
             } else if (req.find("\"maximizeWindow\"") != std::string::npos || req.find("\"zoomWindow\"") != std::string::npos) {

@@ -140,10 +140,14 @@
             </div>
 
             <div class="vis-header-right">
-              <!-- 1-Click Visualizer Maximize / Restore Button -->
+              <!-- 1-Click Fullscreen & Stage Buttons -->
+              <button id="btnFullscreenVis" class="vis-expand-btn fullscreen-btn" title="Toggle Fullscreen Waveform (ESC to exit)" type="button">
+                <span class="vis-expand-icon">⛶</span>
+                <span class="vis-expand-text">FULLSCREEN</span>
+              </button>
               <button id="btnMaxVis" class="vis-expand-btn" title="Toggle Expanded Visualizer Stage (F)" type="button">
                 <span class="vis-expand-icon" id="visMaxIcon">⤢</span>
-                <span class="vis-expand-text" id="visMaxText">MAXIMIZE</span>
+                <span class="vis-expand-text" id="visMaxText">STAGE</span>
               </button>
             </div>
           </div>
@@ -156,12 +160,13 @@
               <div class="vis-theater-info">
                 <span class="vis-theater-badge">THEATER MODE</span>
                 <span class="vis-theater-title" id="visTheaterTitle">ToolNAmp Visualizer Theater</span>
-                <span class="vis-theater-hint">Press <b>ESC</b> or <b>F</b> to restore</span>
+                <span class="vis-theater-hint">Press <b>ESC</b> to exit fullscreen</span>
               </div>
               <div class="vis-theater-actions">
                 <button id="btnTheaterPrev" class="vis-theater-btn" title="Previous Track (Z)" type="button">⏮</button>
                 <button id="btnTheaterPlay" class="vis-theater-btn play" title="Play/Pause (Space)" type="button">▶</button>
                 <button id="btnTheaterNext" class="vis-theater-btn" title="Next Track (B)" type="button">⏭</button>
+                <button id="btnTheaterFullscreen" class="vis-theater-btn" title="Toggle Fullscreen" type="button">⛶</button>
                 <button id="btnTheaterRestore" class="vis-theater-btn restore" title="Restore Normal View (ESC / F)" type="button">⤡ RESTORE</button>
               </div>
             </div>
@@ -225,7 +230,7 @@
 
         <!-- Module Toggle Buttons -->
         <div class="module-toggles">
-          <button id="btnToggleEQ" class="toggle-btn active" title="Toggle 10-Band Equalizer (E)">EQ</button>
+          <button id="btnToggleEQ" class="toggle-btn" title="Toggle 10-Band Equalizer (E)">EQ</button>
           <button id="btnTogglePL" class="toggle-btn active" title="Toggle Playlist Manager (P)">PL</button>
           <button id="btnToggleFX" class="toggle-btn" title="Toggle DSP Audio Effects Rack">FX</button>
           <button id="btnShuffle" class="toggle-btn" title="Toggle Shuffle (S)">SHUF</button>
@@ -233,8 +238,8 @@
         </div>
       </section>
 
-      <!-- 10-BAND EQUALIZER MODULE -->
-      <section id="equalizerSection" class="eq-section">
+      <!-- 10-BAND EQUALIZER MODULE (DEFAULT HIDDEN) -->
+      <section id="equalizerSection" class="eq-section hidden">
         <div class="module-header">
           <div class="module-title">
             <span class="dot-indicator"></span>
@@ -500,8 +505,9 @@
           <span class="footer-separator">•</span>
           <span id="plStatsDuration">00:00 total time</span>
           <span class="footer-separator">•</span>
-          <span class="footer-credits-tag">Developed by <b>ToolNPlay.com</b> • Authors: <b>Pardeep Kumar & Harsh Suman</b></span>
+          <span class="footer-credits-tag">Developed by <b>ToolNPlay.com</b> • Developers: <b>Pardeep Kumar & Harsh Suman</b></span>
           <div class="footer-right">
+            <button id="btnCheckUpdateFooter" class="footer-info-btn" title="Check for ToolNAmp Updates">🔄 UPDATE</button>
             <button id="btnSongInfo" class="footer-info-btn" title="Track Metadata Inspector">ℹ️ INFO</button>
             <button id="btnShortcuts" class="footer-info-btn" title="Keyboard Shortcuts Sheet">⌨️ KEYS</button>
             <button id="btnAbout" class="footer-info-btn" title="About ToolNAmp & Credits">⚡ ABOUT</button>
@@ -590,8 +596,8 @@
           </div>
           <div class="credits-badge-box">
             <div class="cr-row"><span class="cr-lbl">Developed by:</span> <span class="cr-val"><a href="https://toolnplay.com" target="_blank" style="color:var(--accent-secondary);text-decoration:underline;">ToolNPlay.com</a></span></div>
-            <div class="cr-row"><span class="cr-lbl">Authors:</span> <span class="cr-val"><b>Pardeep Kumar</b> (<a href="https://www.linkedin.com/in/pardeeppatel/" target="_blank" style="color:var(--accent-primary);">LinkedIn</a> • <a href="https://github.com/pardeeppatel" target="_blank" style="color:var(--accent-primary);">GitHub</a>) &amp; <b>Harsh Suman</b> (<a href="https://www.linkedin.com/in/harshsuman/" target="_blank" style="color:var(--accent-primary);">LinkedIn</a>)</span></div>
-            <div class="cr-row"><span class="cr-lbl">Version:</span> <span class="cr-val">1.0.0</span></div>
+            <div class="cr-row"><span class="cr-lbl">Developers:</span> <span class="cr-val"><b>Pardeep Kumar</b> (<a href="https://www.linkedin.com/in/pardeeppatel/" target="_blank" style="color:var(--accent-primary);">LinkedIn</a> • <a href="https://github.com/pardeeppatel" target="_blank" style="color:var(--accent-primary);">GitHub</a>) &amp; <b>Harsh Suman</b> (<a href="https://www.linkedin.com/in/harshsuman/" target="_blank" style="color:var(--accent-primary);">LinkedIn</a>)</span></div>
+            <div class="cr-row"><span class="cr-lbl">Version:</span> <span class="cr-val">1.0.0 <button id="btnCheckUpdateAbout" style="margin-left:8px;padding:2px 8px;font-size:9px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);border-radius:999px;color:var(--accent-highlight,#38bdf8);cursor:pointer;" title="Check for Updates">🔄 Check Update</button></span></div>
           </div>
           <div class="about-features-pill-list">
             <span>🎛️ 10-Band EQ & Preamp</span>
@@ -606,6 +612,52 @@
           <div class="about-btn-row">
             <button id="btnAboutOk" class="modal-ok-btn">Rock On!</button>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CLOSE / EXIT CONFIRMATION MODAL -->
+    <div id="closeConfirmModal" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+      <div class="modal-box close-modal-box">
+        <div class="modal-header">
+          <h3>⚡ EXIT TOOLNAMP</h3>
+          <button id="btnCloseConfirmClose" class="modal-close-btn" title="Cancel">&times;</button>
+        </div>
+        <div class="modal-body close-modal-body">
+          <div class="close-confirm-hero">
+            <span class="close-confirm-icon">🎵</span>
+            <p id="closeConfirmMessage" class="close-confirm-msg">Audio is currently playing. What would you like to do?</p>
+          </div>
+          <div class="close-confirm-actions">
+            <button id="btnClosePlayBackground" class="modal-action-btn bg-btn">▶ Play in Background</button>
+            <button id="btnCloseExitApp" class="modal-action-btn exit-btn">✕ Exit ToolNAmp</button>
+            <button id="btnCloseCancel" class="modal-action-btn cancel-btn">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- UPDATE CHECK MODAL -->
+    <div id="updateModal" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+      <div class="modal-box update-modal-box">
+        <div class="modal-header">
+          <h3>⚡ TOOLNAMP UPDATES</h3>
+          <button id="btnCloseUpdateModal" class="modal-close-btn" title="Close">&times;</button>
+        </div>
+        <div class="modal-body update-modal-body">
+          <div class="update-status-hero">
+            <span id="updateIcon" class="update-icon">🔄</span>
+            <h4 id="updateTitle" class="update-title">Checking for updates...</h4>
+            <p id="updateMessage" class="update-msg">Connecting to ToolNPlay release servers...</p>
+          </div>
+          <div id="updateReleaseNotes" class="update-release-notes hidden"></div>
+          <div class="update-actions">
+            <a id="btnDownloadUpdate" href="https://github.com/ToolNPlay/ToolNAmp/releases/latest" target="_blank" class="modal-ok-btn update-dl-btn hidden">📥 Download Update</a>
+            <button id="btnUpdateOk" class="modal-ok-btn">OK</button>
+          </div>
+        </div>
+      </div>
+    </div>
         </div>
       </div>
     </div>

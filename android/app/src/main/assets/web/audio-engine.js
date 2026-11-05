@@ -2,7 +2,7 @@
  * ToolNAmp Audio Engine
  * Web Audio API Graph with 10-Band EQ, Preamp, Stereo Pan,
  * Procedural Convolver Reverb, Bass Booster, and Real-Time Analyser.
- * Developed by ToolNPlay.com • Authors: Pardeep Kumar & Harsh Suman
+ * Developed by ToolNPlay.com • Developers: Pardeep Kumar & Harsh Suman
  */
 
 class MacAmpAudioEngine {

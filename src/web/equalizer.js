@@ -2,7 +2,7 @@
  * ToolNAmp Graphic Equalizer Controller
  * Manages 10 frequency bands, Preamp, Power switch,
  * Presets, and real-time EQ Curve rendering.
- * Developed by ToolNPlay.com • Authors: Pardeep Kumar & Harsh Suman
+ * Developed by ToolNPlay.com • Developers: Pardeep Kumar & Harsh Suman
  */
 
 class ToolNAmpEqualizer {
