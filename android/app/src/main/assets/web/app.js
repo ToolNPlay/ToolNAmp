@@ -46,8 +46,13 @@ class ToolNAmpApp {
     const restored = this.loadSavedCollection();
     if (!restored || this.playlist.length === 0) {
       this.updatePlaylistUI();
-    this.probeMissingDurations();
     }
+    this.probeMissingDurations();
+
+    // Auto-detect updates silently 2.5 seconds after launch when online
+    setTimeout(() => {
+      this.checkForUpdates(false);
+    }, 2500);
   }
 
   bindPersistenceEvents() {
@@ -722,6 +727,13 @@ class ToolNAmpApp {
     document.getElementById('btnCheckUpdateAbout')?.addEventListener('click', () => this.checkForUpdates(true));
     document.getElementById('btnCloseUpdateModal')?.addEventListener('click', () => this.hideUpdateModal());
     document.getElementById('btnUpdateOk')?.addEventListener('click', () => this.hideUpdateModal());
+    document.getElementById('updateReleaseNotes')?.addEventListener('click', (e) => {
+      const a = e.target.closest('a');
+      if (a && a.href) {
+        e.preventDefault();
+        this.openExternal(a.href);
+      }
+    });
 
     // Close Confirmation Modal
     document.getElementById('btnClosePlayBackground')?.addEventListener('click', () => {
@@ -1995,6 +2007,111 @@ class ToolNAmpApp {
     document.getElementById('closeConfirmModal')?.classList.add('hidden');
   }
 
+  // --- EXTERNAL LINK OPENER ---
+  openExternal(url) {
+    if (!url) return;
+    this.sendNative('openExternal', { url: url });
+    try {
+      window.open(url, '_blank');
+    } catch (e) {}
+  }
+
+  detectPlatform() {
+    const ua = (navigator.userAgent || '').toLowerCase();
+    if (ua.includes('android') || window.AndroidBridge) return 'android';
+    if (ua.includes('mac') || window.webkit) return 'mac';
+    if (ua.includes('win') || (window.chrome && !window.webkit && !window.AndroidBridge)) return 'windows';
+    return 'other';
+  }
+
+  formatReleaseNotesMarkdown(text) {
+    if (!text || typeof text !== 'string') return '';
+
+    let src = text.replace(/\r\n/g, '\n').trim();
+
+    // 1. Code blocks (```language ... ```)
+    src = src.replace(/```([a-z0-9_-]*)\n([\s\S]*?)```/g, (match, lang, code) => {
+      const escaped = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      return `<pre class="md-pre"><code>${escaped.trim()}</code></pre>`;
+    });
+
+    // 2. Escape HTML entities outside pre blocks
+    const parts = src.split(/(<pre[\s\S]*?<\/pre>)/g);
+    for (let i = 0; i < parts.length; i++) {
+      if (!parts[i].startsWith('<pre')) {
+        parts[i] = parts[i]
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;');
+      }
+    }
+    src = parts.join('');
+
+    // 3. Headers
+    src = src.replace(/^#### (.*$)/gim, '<h5 class="md-h5">$1</h5>');
+    src = src.replace(/^### (.*$)/gim, '<h4 class="md-h4">$1</h4>');
+    src = src.replace(/^## (.*$)/gim, '<h3 class="md-h3">$1</h3>');
+    src = src.replace(/^# (.*$)/gim, '<h2 class="md-h2">$1</h2>');
+
+    // 4. Horizontal Rules
+    src = src.replace(/^(?:---|___|\*\*\*)$/gim, '<hr class="md-hr">');
+
+    // 5. Inline Code
+    src = src.replace(/`([^`]+)`/g, '<code class="md-code">$1</code>');
+
+    // 6. Bold & Italic
+    src = src.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    src = src.replace(/__([^_]+)__/g, '<strong>$1</strong>');
+    src = src.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+    src = src.replace(/_([^_]+)_/g, '<em>$1</em>');
+
+    // 7. Markdown Links [Text](URL)
+    src = src.replace(/\[([^\]]+)\]\((https?:\/\/[^\s\)]+)\)/g, '<a href="$2" class="md-link" target="_blank">$1</a>');
+
+    // 8. Bullet & Numbered Lists
+    const lines = src.split('\n');
+    let inList = false;
+    let inNumList = false;
+    const out = [];
+
+    for (let line of lines) {
+      const trimmed = line.trim();
+      const bulletMatch = trimmed.match(/^[\*\-\+]\s+(.*)$/);
+      const numMatch = trimmed.match(/^(\d+)\.\s+(.*)$/);
+
+      if (bulletMatch) {
+        if (!inList) {
+          if (inNumList) { out.push('</ol>'); inNumList = false; }
+          out.push('<ul class="md-ul">');
+          inList = true;
+        }
+        out.push(`<li>${bulletMatch[1]}</li>`);
+      } else if (numMatch) {
+        if (!inNumList) {
+          if (inList) { out.push('</ul>'); inList = false; }
+          out.push('<ol class="md-ol">');
+          inNumList = true;
+        }
+        out.push(`<li>${numMatch[2]}</li>`);
+      } else {
+        if (inList) { out.push('</ul>'); inList = false; }
+        if (inNumList) { out.push('</ol>'); inNumList = false; }
+
+        if (trimmed.length > 0) {
+          if (/^<(h[2-6]|hr|pre|ul|ol)/i.test(trimmed)) {
+            out.push(trimmed);
+          } else {
+            out.push(`<p>${trimmed}</p>`);
+          }
+        }
+      }
+    }
+    if (inList) out.push('</ul>');
+    if (inNumList) out.push('</ol>');
+
+    return out.join('\n');
+  }
+
   // --- CHECK FOR UPDATES ---
   async checkForUpdates(manual = false) {
     const modal = document.getElementById('updateModal');
@@ -2003,23 +2120,27 @@ class ToolNAmpApp {
     const msg = document.getElementById('updateMessage');
     const notes = document.getElementById('updateReleaseNotes');
     const dlBtn = document.getElementById('btnDownloadUpdate');
+    const secBox = document.getElementById('updateSecondaryLinkBox');
+    const secLink = document.getElementById('linkViewRelease');
 
-    if (!modal) return;
-    modal.classList.remove('hidden');
+    if (manual) {
+      if (!modal) return;
+      modal.classList.remove('hidden');
 
-    if (icon) icon.textContent = '🔄';
-    if (title) title.textContent = 'Checking for Updates...';
-    if (msg) msg.textContent = 'Connecting to GitHub releases for ToolNAmp...';
-    
-    // Explicitly hide release notes and download button initially
-    if (notes) {
-      notes.textContent = '';
-      notes.style.display = 'none';
-      notes.classList.add('hidden');
-    }
-    if (dlBtn) {
-      dlBtn.style.display = 'none';
-      dlBtn.classList.add('hidden');
+      if (icon) icon.textContent = '🔄';
+      if (title) title.textContent = 'Checking for Updates...';
+      if (msg) msg.textContent = 'Connecting to GitHub releases for ToolNAmp...';
+
+      if (notes) {
+        notes.innerHTML = '';
+        notes.style.display = 'none';
+        notes.classList.add('hidden');
+      }
+      if (dlBtn) {
+        dlBtn.style.display = 'none';
+        dlBtn.classList.add('hidden');
+      }
+      if (secBox) secBox.style.display = 'none';
     }
 
     try {
@@ -2039,25 +2160,94 @@ class ToolNAmpApp {
       const isNewer = latestTag && latestTag !== currentTag && this.compareVersions(latestTag, currentTag) > 0;
 
       if (isNewer) {
+        const platform = this.detectPlatform();
+        let targetDownloadUrl = data.html_url || 'https://github.com/ToolNPlay/ToolNAmp/releases/latest';
+        let btnText = `📥 Download Update (${latestTag})`;
+
+        if (Array.isArray(data.assets) && data.assets.length > 0) {
+          if (platform === 'mac') {
+            const dmgAsset = data.assets.find(a => a.name && a.name.endsWith('.dmg'));
+            if (dmgAsset) {
+              targetDownloadUrl = dmgAsset.browser_download_url;
+              btnText = `📥 Download ToolNAmp.dmg (macOS)`;
+            }
+          } else if (platform === 'windows') {
+            const winAsset = data.assets.find(a => a.name && (a.name.endsWith('.zip') || a.name.endsWith('.exe')));
+            if (winAsset) {
+              targetDownloadUrl = winAsset.browser_download_url;
+              btnText = `📥 Download Windows Release`;
+            }
+          } else if (platform === 'android') {
+            const apkAsset = data.assets.find(a => a.name && a.name.endsWith('.apk'));
+            if (apkAsset) {
+              targetDownloadUrl = apkAsset.browser_download_url;
+              btnText = `📥 Download ToolNAmp.apk (Android)`;
+            }
+          }
+        }
+
+        // Highlight footer update button
+        const footerBtn = document.getElementById('btnCheckUpdateFooter');
+        if (footerBtn) footerBtn.classList.add('has-update-badge');
+
+        const marquee = document.getElementById('trackMarquee');
+        if (marquee && !this.isPlaying) {
+          marquee.textContent = `⚡ NEW UPDATE AVAILABLE: ${latestTag} ⚡`;
+        }
+
+        if (modal) modal.classList.remove('hidden');
+
         if (icon) icon.textContent = '🎉';
         if (title) title.textContent = `New Update Available: ${latestTag}`;
         if (msg) msg.textContent = `A new version of ToolNAmp is available (Current: ${currentTag}).`;
+
         if (notes && data.body) {
-          notes.textContent = data.body;
+          notes.innerHTML = this.formatReleaseNotesMarkdown(data.body);
           notes.style.display = 'block';
           notes.classList.remove('hidden');
         }
+
         if (dlBtn) {
-          dlBtn.href = data.html_url || 'https://toolnplay.com/software/toolnamp';
+          dlBtn.textContent = btnText;
+          dlBtn.onclick = (e) => {
+            e.preventDefault();
+            this.openExternal(targetDownloadUrl);
+          };
           dlBtn.style.display = 'inline-flex';
           dlBtn.classList.remove('hidden');
         }
+
+        if (secBox && secLink && data.html_url) {
+          secBox.style.display = 'block';
+          secLink.onclick = (e) => {
+            e.preventDefault();
+            this.openExternal(data.html_url);
+          };
+        }
       } else {
-        if (icon) icon.textContent = '✅';
-        if (title) title.textContent = 'ToolNAmp is Up to Date';
-        if (msg) msg.textContent = `You are running the latest version (${currentTag}).`;
+        if (manual) {
+          if (icon) icon.textContent = '✅';
+          if (title) title.textContent = 'ToolNAmp is Up to Date';
+          if (msg) msg.textContent = `You are running the latest version (${currentTag}).`;
+          if (notes) {
+            notes.innerHTML = '';
+            notes.style.display = 'none';
+            notes.classList.add('hidden');
+          }
+          if (dlBtn) {
+            dlBtn.style.display = 'none';
+            dlBtn.classList.add('hidden');
+          }
+          if (secBox) secBox.style.display = 'none';
+        }
+      }
+    } catch (err) {
+      if (manual) {
+        if (icon) icon.textContent = '⚠️';
+        if (title) title.textContent = 'Update Check Unavailable';
+        if (msg) msg.textContent = 'Unable to check for updates. Please check your internet connection or visit toolnplay.com/software/toolnamp.';
         if (notes) {
-          notes.textContent = '';
+          notes.innerHTML = '';
           notes.style.display = 'none';
           notes.classList.add('hidden');
         }
@@ -2065,19 +2255,7 @@ class ToolNAmpApp {
           dlBtn.style.display = 'none';
           dlBtn.classList.add('hidden');
         }
-      }
-    } catch (err) {
-      if (icon) icon.textContent = '⚠️';
-      if (title) title.textContent = 'Update Check Unavailable';
-      if (msg) msg.textContent = 'Unable to check for updates. Please check your internet connection or visit toolnplay.com/software/toolnamp.';
-      if (notes) {
-        notes.textContent = '';
-        notes.style.display = 'none';
-        notes.classList.add('hidden');
-      }
-      if (dlBtn) {
-        dlBtn.style.display = 'none';
-        dlBtn.classList.add('hidden');
+        if (secBox) secBox.style.display = 'none';
       }
     }
   }
@@ -2095,7 +2273,10 @@ class ToolNAmpApp {
   }
 
   hideUpdateModal() {
-    document.getElementById('updateModal')?.classList.add('hidden');
+    const modal = document.getElementById('updateModal');
+    if (modal) modal.classList.add('hidden');
+    const secBox = document.getElementById('updateSecondaryLinkBox');
+    if (secBox) secBox.style.display = 'none';
   }
 
   // --- WINDOW SHADE / MINI MODE ---

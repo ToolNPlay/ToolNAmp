@@ -19,7 +19,7 @@ x86_64-w64-mingw32-g++ -std=c++17 -O2 -s \
   -I "$DIR/windows/include" \
   "$DIR/windows/main.cpp" \
   -o "$DIR/build/ToolNAmp-Lightweight.exe" \
-  -mwindows -lole32 -loleaut32 -lshlwapi -lversion -lcomdlg32
+  -mwindows -lole32 -loleaut32 -lshlwapi -lversion -lcomdlg32 -lshell32
 
 echo "Packaging lightweight distribution..."
 cp "$DIR/build/ToolNAmp-Lightweight.exe" "$DIR/build/ToolNAmp-Lightweight-Win64/ToolNAmp.exe"

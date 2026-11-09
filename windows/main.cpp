@@ -8,6 +8,7 @@
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <shellapi.h>
 #include <shlobj.h>
 #include <shlwapi.h>
 #include <commdlg.h>
@@ -262,6 +263,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                         }
                     }
                     CoTaskMemFree(pidl);
+                }
+            } else if (req.find("\"openExternal\"") != std::string::npos) {
+                size_t pos = req.find("\"url\":\"");
+                if (pos != std::string::npos) {
+                    size_t end = req.find("\"", pos + 7);
+                    if (end != std::string::npos) {
+                        std::string url = req.substr(pos + 7, end - (pos + 7));
+                        ShellExecuteA(NULL, "open", url.c_str(), NULL, NULL, SW_SHOWNORMAL);
+                    }
                 }
             }
             return "{\"status\":\"ok\"}";

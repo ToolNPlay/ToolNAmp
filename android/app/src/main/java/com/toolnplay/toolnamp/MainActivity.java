@@ -120,7 +120,21 @@ public class MainActivity extends Activity {
         settings.setCacheMode(WebSettings.LOAD_DEFAULT);
 
         webView.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
-        webView.setWebViewClient(new WebViewClient());
+        webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                if (url != null && (url.startsWith("http://") || url.startsWith("https://"))) {
+                    try {
+                        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                        startActivity(browserIntent);
+                        return true;
+                    } catch (Exception e) {
+                        return false;
+                    }
+                }
+                return false;
+            }
+        });
 
         // File picker handler for HTML <input type="file">
         webView.setWebChromeClient(new WebChromeClient() {
@@ -396,6 +410,18 @@ public class MainActivity extends Activity {
                     runOnUiThread(() -> showPlaybackNotification(title, artist));
                 } else if ("playbackPaused".equals(action) || "playbackStopped".equals(action)) {
                     runOnUiThread(() -> cancelPlaybackNotification());
+                } else if ("openExternal".equals(action)) {
+                    String url = json.optString("url");
+                    if (url != null && !url.isEmpty()) {
+                        runOnUiThread(() -> {
+                            try {
+                                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                                startActivity(browserIntent);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        });
+                    }
                 }
             } catch (Exception e) {
                 e.printStackTrace();

@@ -181,7 +181,7 @@
 @end
 
 
-@interface MacAmpAppDelegate : NSObject <NSApplicationDelegate, NSWindowDelegate, WKScriptMessageHandler, WKNavigationDelegate>
+@interface MacAmpAppDelegate : NSObject <NSApplicationDelegate, NSWindowDelegate, WKScriptMessageHandler, WKNavigationDelegate, WKUIDelegate>
 @property (strong, nonatomic) NSWindow *window;
 @property (strong, nonatomic) MacAmpWebView *webView;
 @property (assign, nonatomic) NSRect savedWindowFrame;
@@ -280,6 +280,7 @@
     self.webView = [[MacAmpWebView alloc] initWithFrame:self.window.contentView.bounds configuration:config];
     [self.webView setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
     [self.webView setNavigationDelegate:self];
+    [self.webView setUIDelegate:self];
     [self.webView registerForDraggedTypes:@[NSPasteboardTypeFileURL]];
     
     if (@available(macOS 10.14, *)) {
@@ -333,6 +334,7 @@
     [mainMenu addItem:appMenuItem];
     NSMenu *appMenu = [[NSMenu alloc] initWithTitle:@"ToolNAmp"];
     [appMenu addItemWithTitle:@"About ToolNAmp" action:@selector(showAbout) keyEquivalent:@""];
+    [appMenu addItemWithTitle:@"Check for Updates..." action:@selector(menuCheckUpdates) keyEquivalent:@""];
     [appMenu addItem:[NSMenuItem separatorItem]];
     [appMenu addItemWithTitle:@"Hide ToolNAmp" action:@selector(hide:) keyEquivalent:@"h"];
     [appMenu addItemWithTitle:@"Hide Others" action:@selector(hideOtherApplications:) keyEquivalent:@"h"];
@@ -418,6 +420,10 @@
 #pragma mark - Menu Actions forwarded to Web
 - (void)autoScanAction {
     [self handleAutoScanMusicLibrary];
+}
+
+- (void)menuCheckUpdates {
+    [self.webView evaluateJavaScript:@"(window.toolNAmp || window.macAmp) && (window.toolNAmp || window.macAmp).checkForUpdates(true)" completionHandler:nil];
 }
 
 - (void)openFileAction {
@@ -700,6 +706,16 @@
             NSString *path = [self collectionFilePath];
             [data writeToFile:path atomically:YES encoding:NSUTF8StringEncoding error:nil];
         }
+    } else if ([action isEqualToString:@"openExternal"]) {
+        NSString *urlStr = body[@"url"];
+        if (urlStr && [urlStr isKindOfClass:[NSString class]]) {
+            NSURL *targetURL = [NSURL URLWithString:urlStr];
+            if (targetURL) {
+                printf("[Native]: Opening external URL: %s\n", [urlStr UTF8String]);
+                fflush(stdout);
+                [[NSWorkspace sharedWorkspace] openURL:targetURL];
+            }
+        }
     }
 }
 
@@ -721,6 +737,24 @@
     }
     
     return newPath;
+}
+
+- (void)webView:(WKWebView *)webView decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
+    NSURL *url = navigationAction.request.URL;
+    if (url && ([url.scheme isEqualToString:@"http"] || [url.scheme isEqualToString:@"https"])) {
+        [[NSWorkspace sharedWorkspace] openURL:url];
+        decisionHandler(WKNavigationActionPolicyCancel);
+        return;
+    }
+    decisionHandler(WKNavigationActionPolicyAllow);
+}
+
+- (WKWebView *)webView:(WKWebView *)webView createWebViewWithConfiguration:(WKWebViewConfiguration *)configuration forNavigationAction:(WKNavigationAction *)navigationAction windowFeatures:(WKWindowFeatures *)windowFeatures {
+    NSURL *url = navigationAction.request.URL;
+    if (url && ([url.scheme isEqualToString:@"http"] || [url.scheme isEqualToString:@"https"])) {
+        [[NSWorkspace sharedWorkspace] openURL:url];
+    }
+    return nil;
 }
 
 - (void)webView:(WKWebView *)webView didFinishNavigation:(WKNavigation *)navigation {
