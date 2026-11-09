@@ -45,5 +45,13 @@ cp -R "$DIR/src/web/"* "$RESOURCES_DIR/web/"
 echo "Signing App Bundle with Ad-Hoc signature..."
 codesign --force --deep --sign - "$APP_DIR"
 
+# 6. Exclude development build from Spotlight & LaunchServices so only /Applications/ToolNAmp.app appears in macOS Search
+touch "$BUILD_DIR/.metadata_never_index" 2>/dev/null || true
+if [ -x "/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister" ]; then
+  REAL_APP_DIR="$(cd "$BUILD_DIR" 2>/dev/null && pwd -P)/ToolNAmp.app"
+  /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -u "$APP_DIR" 2>/dev/null || true
+  [ -d "$REAL_APP_DIR" ] && /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -u "$REAL_APP_DIR" 2>/dev/null || true
+fi
+
 echo "=== Build Complete! App bundle located at: ==="
 echo "$APP_DIR"
