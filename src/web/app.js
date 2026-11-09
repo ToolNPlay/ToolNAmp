@@ -7,7 +7,7 @@
 
 class ToolNAmpApp {
   constructor() {
-    this.version = 'v1.0.1';
+    this.version = 'v1.1.0';
     this.playlist = [];
     this.currentIndex = -1;
     this.isPlaying = false;
@@ -2034,7 +2034,7 @@ class ToolNAmpApp {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       const latestTag = data.tag_name || data.name || '';
-      const currentTag = this.version || 'v1.0.1';
+      const currentTag = this.version || 'v1.1.0';
 
       const isNewer = latestTag && latestTag !== currentTag && this.compareVersions(latestTag, currentTag) > 0;
 

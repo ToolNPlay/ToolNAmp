@@ -399,7 +399,7 @@
 
 - (void)showAbout {
     NSAlert *alert = [[NSAlert alloc] init];
-    [alert setMessageText:@"⚡ ToolNAmp v1.0.1"];
+    [alert setMessageText:@"⚡ ToolNAmp v1.1.0"];
     [alert setInformativeText:@"The Ultimate Retro High-Fidelity Music Player\n\n"
                               @"• Developed by: ToolNPlay.com\n"
                               @"• Developers: Pardeep Kumar & Harsh Suman\n\n"
