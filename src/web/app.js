@@ -43,6 +43,7 @@ class ToolNAmpApp {
     const restored = this.loadSavedCollection();
     if (!restored || this.playlist.length === 0) {
       this.updatePlaylistUI();
+    this.probeMissingDurations();
     }
   }
 
@@ -126,6 +127,7 @@ class ToolNAmpApp {
     }
 
     this.updatePlaylistUI();
+    this.probeMissingDurations();
 
     if (this.playlist.length > 0) {
       let targetIndex = 0;
@@ -427,7 +429,9 @@ class ToolNAmpApp {
     // Close Confirmation Modal
     document.getElementById('btnClosePlayBackground')?.addEventListener('click', () => {
       this.hideCloseConfirmModal();
-      this.sendNative('playInBackground', {});
+      if (window.AndroidBridge) {
+        this.sendNative('playInBackground', {});
+      }
     });
     document.getElementById('btnCloseExitApp')?.addEventListener('click', () => {
       this.hideCloseConfirmModal();
@@ -685,6 +689,14 @@ class ToolNAmpApp {
       }
     });
 
+    audio.addEventListener('loadedmetadata', () => {
+      this.onTrackMetadataLoaded();
+    });
+
+    audio.addEventListener('durationchange', () => {
+      this.onTrackMetadataLoaded();
+    });
+
     audio.addEventListener('ended', () => {
       if (this.repeatMode === 'one') {
         audio.currentTime = 0;
@@ -699,6 +711,7 @@ class ToolNAmpApp {
       this.isPaused = false;
       this.updateTransportLEDs();
       this.updatePlaylistUI();
+    this.probeMissingDurations();
       this.saveCollection();
     });
 
@@ -707,8 +720,36 @@ class ToolNAmpApp {
       this.isPaused = true;
       this.updateTransportLEDs();
       this.updatePlaylistUI();
+    this.probeMissingDurations();
       this.saveCollection();
     });
+  }
+
+  onTrackMetadataLoaded() {
+    const audio = window.audioEngine?.audioElement;
+    if (!audio) return;
+    const dur = audio.duration;
+    if (dur && !isNaN(dur) && isFinite(dur) && dur > 0) {
+      const sec = Math.round(dur);
+      if (this.currentIndex >= 0 && this.playlist[this.currentIndex]) {
+        this.playlist[this.currentIndex].duration = sec;
+      }
+      if (this.currentTrackMeta) {
+        this.currentTrackMeta.duration = sec;
+      }
+      this.updatePlaylistRowTime(this.currentIndex, sec);
+      this.updatePlaylistStats();
+      this.updateTimeDisplay();
+      this.updateSeekBar();
+      this.saveCollection();
+    }
+  }
+
+  updatePlaylistRowTime(index, duration) {
+    const rowTime = document.querySelector(`.playlist-row[data-index="${index}"] .td-time`);
+    if (rowTime) {
+      rowTime.textContent = this.formatTime(duration, false);
+    }
   }
 
   // Select and load track
@@ -740,6 +781,7 @@ class ToolNAmpApp {
 
     this.updateMediaSessionMetadata();
     this.updatePlaylistUI();
+    this.probeMissingDurations();
     this.saveCollection();
 
     if (autoPlay) {
@@ -899,7 +941,11 @@ class ToolNAmpApp {
     }
   }
 
-  formatTime(seconds) {
+  formatTime(seconds, allowZero = true) {
+    if (seconds === undefined || seconds === null || isNaN(seconds) || seconds < 0) {
+      return allowZero ? "00:00" : "--:--";
+    }
+    if (seconds === 0 && !allowZero) return "--:--";
     const m = Math.floor(seconds / 60);
     const s = Math.floor(seconds % 60);
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
@@ -967,6 +1013,7 @@ class ToolNAmpApp {
     this.playlist.forEach((track, index) => {
       const tr = document.createElement('tr');
       tr.className = 'playlist-row';
+      tr.dataset.index = index;
       if (index === this.currentIndex) {
         tr.classList.add('active');
       }
@@ -1003,7 +1050,7 @@ class ToolNAmpApp {
 
       const tdTime = document.createElement('td');
       tdTime.className = 'td-time';
-      tdTime.textContent = this.formatTime(track.duration);
+      tdTime.textContent = this.formatTime(track.duration, false);
 
       const tdDel = document.createElement('td');
       tdDel.className = 'td-del';
@@ -1049,7 +1096,7 @@ class ToolNAmpApp {
     const durLabel = document.getElementById('plStatsDuration');
 
     if (countLabel) countLabel.textContent = `${totalTracks} track${totalTracks === 1 ? '' : 's'}`;
-    if (durLabel) durLabel.textContent = `${this.formatTime(totalSec)} total time`;
+    if (durLabel) durLabel.textContent = `${this.formatTime(totalSec, true)} total time`;
   }
 
   filterPlaylist(keyword) {
@@ -1073,6 +1120,7 @@ class ToolNAmpApp {
       this.playlist.sort(() => Math.random() - 0.5);
     }
     this.updatePlaylistUI();
+    this.probeMissingDurations();
     this.saveCollection();
   }
 
@@ -1090,6 +1138,7 @@ class ToolNAmpApp {
         this.currentIndex--;
       }
       this.updatePlaylistUI();
+    this.probeMissingDurations();
       this.saveCollection();
     }
   }
@@ -1107,6 +1156,7 @@ class ToolNAmpApp {
     this.playlist = [];
     this.currentIndex = -1;
     this.updatePlaylistUI();
+    this.probeMissingDurations();
     this.saveCollection();
   }
 
@@ -1134,7 +1184,7 @@ class ToolNAmpApp {
         title: title.trim(),
         artist: artist.trim(),
         album: 'Local Music',
-        duration: duration || 180,
+        duration: duration || 0,
         url: trackUrl,
         format: file.type || file.name.split('.').pop().toUpperCase(),
         sampleRate: '44.1 kHz',
@@ -1144,6 +1194,8 @@ class ToolNAmpApp {
     }
 
     this.updatePlaylistUI();
+    this.probeMissingDurations();
+    this.probeMissingDurations();
 
     // Auto-select and play the newly uploaded song immediately!
     if (this.playlist.length > 0) {
@@ -1160,7 +1212,7 @@ class ToolNAmpApp {
       title: title || 'Unknown Title',
       artist: artist || 'Local Artist',
       album: 'Local Library',
-      duration: 180,
+      duration: 0,
       url: url,
       format: format || 'AUDIO',
       sampleRate: '44.1 kHz',
@@ -1169,6 +1221,8 @@ class ToolNAmpApp {
     };
     this.playlist.push(newTrack);
     this.updatePlaylistUI();
+    this.probeMissingDurations();
+    this.probeMissingDurations();
     // Immediately select and play the newly added song!
     this.selectTrack(this.playlist.length - 1, true);
     this.saveCollection();
@@ -1182,12 +1236,13 @@ class ToolNAmpApp {
 
       const startIndex = this.playlist.length;
       items.forEach(item => {
+        const itemDur = (typeof item.duration === 'number' && item.duration > 0) ? item.duration : 0;
         this.playlist.push({
           id: `track-${Date.now()}-${Math.random()}`,
           title: item.title || 'Unknown Title',
           artist: item.artist || 'Local Artist',
           album: 'Local Library',
-          duration: item.duration || 180,
+          duration: itemDur,
           url: item.url,
           format: item.format || 'AUDIO',
           sampleRate: '44.1 kHz',
@@ -1197,6 +1252,8 @@ class ToolNAmpApp {
       });
 
       this.updatePlaylistUI();
+    this.probeMissingDurations();
+      this.probeMissingDurations();
       // Auto-play the first added track if nothing was playing
       if (!this.isPlaying) {
         this.selectTrack(startIndex, true);
@@ -1210,15 +1267,80 @@ class ToolNAmpApp {
 
   getAudioDuration(url) {
     return new Promise((resolve) => {
+      if (!url) return resolve(0);
       const tempAudio = new Audio();
-      tempAudio.src = url;
-      tempAudio.addEventListener('loadedmetadata', () => {
-        resolve(tempAudio.duration);
-      });
-      tempAudio.addEventListener('error', () => {
-        resolve(180);
-      });
+      tempAudio.preload = 'metadata';
+      let done = false;
+
+      const finish = (val) => {
+        if (done) return;
+        done = true;
+        tempAudio.removeEventListener('loadedmetadata', onLoaded);
+        tempAudio.removeEventListener('error', onError);
+        tempAudio.src = '';
+        resolve((val && !isNaN(val) && isFinite(val) && val > 0) ? Math.round(val) : 0);
+      };
+
+      const onLoaded = () => finish(tempAudio.duration);
+      const onError = () => finish(0);
+
+      tempAudio.addEventListener('loadedmetadata', onLoaded);
+      tempAudio.addEventListener('error', onError);
+
+      // 4-second timeout safety guard
+      setTimeout(() => finish(0), 4000);
+
+      try {
+        tempAudio.src = url;
+      } catch (e) {
+        finish(0);
+      }
     });
+  }
+
+  probeMissingDurations() {
+    if (this._isProbingDurations) return;
+    this._isProbingDurations = true;
+
+    const unprobed = this.playlist.filter(t => !t.duration || t.duration <= 0 || t.duration === 180);
+    if (unprobed.length === 0) {
+      this._isProbingDurations = false;
+      return;
+    }
+
+    const processNext = async () => {
+      if (unprobed.length === 0) {
+        this._isProbingDurations = false;
+        this.updatePlaylistStats();
+        this.saveCollection();
+        return;
+      }
+      const track = unprobed.shift();
+      try {
+        const dur = await this.getAudioDuration(track.url);
+        if (dur > 0) {
+          track.duration = dur;
+        } else if (track.duration === 180) {
+          track.duration = 0;
+        }
+        const idx = this.playlist.indexOf(track);
+        if (idx !== -1) {
+          this.updatePlaylistRowTime(idx, track.duration);
+          this.updatePlaylistStats();
+        }
+      } catch (e) {
+        if (track.duration === 180) {
+          track.duration = 0;
+          const idx = this.playlist.indexOf(track);
+          if (idx !== -1) {
+            this.updatePlaylistRowTime(idx, 0);
+          }
+        }
+      }
+      setTimeout(processNext, 30);
+    };
+
+    processNext();
   }
 
   openFilePicker() {
@@ -1399,10 +1521,11 @@ class ToolNAmpApp {
       if (line.startsWith('#EXTINF:')) {
         const info = line.substring(8);
         const commaIdx = info.indexOf(',');
-        let dur = 180;
+        let dur = 0;
         let titleArtist = info;
         if (commaIdx !== -1) {
-          dur = parseInt(info.substring(0, commaIdx), 10) || 180;
+          const parsed = parseInt(info.substring(0, commaIdx), 10);
+          dur = (parsed > 0) ? parsed : 0;
           titleArtist = info.substring(commaIdx + 1).trim();
         }
         let artist = "M3U Track";
@@ -1435,7 +1558,7 @@ class ToolNAmpApp {
         const fileName = fullPath.split('/').pop().replace(/\.[^/.]+$/, "");
         let title = pendingMeta?.title || fileName || "Track";
         let artist = pendingMeta?.artist || "Local Music";
-        let duration = pendingMeta?.duration || 180;
+        let duration = pendingMeta?.duration || 0;
 
         let ext = fullPath.split('.').pop() || 'AUDIO';
         if (ext.length > 5) ext = 'AUDIO';
@@ -1459,6 +1582,7 @@ class ToolNAmpApp {
 
     if (addedCount > 0) {
       this.updatePlaylistUI();
+    this.probeMissingDurations();
       this.saveCollection();
       if (this.currentIndex === -1 || initialCount === 0) {
         this.loadTrack(initialCount);
@@ -1507,14 +1631,40 @@ class ToolNAmpApp {
 
   // --- CLOSE CONFIRMATION / BACKGROUND PLAYBACK ---
   requestClose() {
-    if (this.isPlaying) {
-      const modal = document.getElementById('closeConfirmModal');
-      if (modal) {
+    const isAndroid = !!(window.AndroidBridge);
+    const modal = document.getElementById('closeConfirmModal');
+    const msg = document.getElementById('closeConfirmMessage');
+    const bgBtn = document.getElementById('btnClosePlayBackground');
+
+    if (!modal) {
+      this.confirmClose();
+      return;
+    }
+
+    if (isAndroid) {
+      // Android: Offer background playback if audio is currently playing
+      if (bgBtn) bgBtn.style.display = this.isPlaying ? 'inline-block' : 'none';
+      if (msg) {
+        msg.textContent = this.isPlaying
+          ? "Audio is currently playing. What would you like to do?"
+          : "Are you sure you want to exit ToolNAmp?";
+      }
+      modal.classList.remove('hidden');
+    } else {
+      // Desktop (macOS / Windows / Web):
+      // NEVER show Play in Background button on desktop
+      if (bgBtn) bgBtn.style.display = 'none';
+
+      if (this.isPlaying) {
+        if (msg) {
+          msg.textContent = "Audio is currently playing. Are you sure you want to exit ToolNAmp?";
+        }
         modal.classList.remove('hidden');
-        return;
+      } else {
+        // If no music is playing on desktop, exit directly
+        this.confirmClose();
       }
     }
-    this.confirmClose();
   }
 
   confirmClose() {

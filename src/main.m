@@ -1,5 +1,7 @@
 #import <Cocoa/Cocoa.h>
 #import <WebKit/WebKit.h>
+#import <AVFoundation/AVFoundation.h>
+#import <CoreMedia/CoreMedia.h>
 
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
 
@@ -942,12 +944,24 @@
             title = [[parts subarrayWithRange:NSMakeRange(1, parts.count - 1)] componentsJoinedByString:@" - "];
         }
         
+        // Compute audio duration natively via AVURLAsset
+        NSInteger durationSec = 0;
+        @try {
+            AVURLAsset *asset = [AVURLAsset URLAssetWithURL:url options:nil];
+            CMTime time = asset.duration;
+            NSTimeInterval sec = CMTimeGetSeconds(time);
+            if (sec > 0 && !isnan(sec) && !isinf(sec)) {
+                durationSec = (NSInteger)round(sec);
+            }
+        } @catch (NSException *e) {}
+        
         NSString *audioURL = [NSString stringWithFormat:@"toolnamp-audio://local%@", [url path]];
         [trackDicts addObject:@{
             @"title": title,
             @"artist": artist,
             @"url": audioURL,
-            @"format": [[url pathExtension] uppercaseString]
+            @"format": [[url pathExtension] uppercaseString],
+            @"duration": @(durationSec)
         }];
     }
     

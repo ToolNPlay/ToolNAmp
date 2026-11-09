@@ -22,6 +22,8 @@ echo "Compiling native Cocoa Mach-O binary with clang..."
 clang -O3 -fobjc-arc \
   -framework Cocoa \
   -framework WebKit \
+  -framework AVFoundation \
+  -framework CoreMedia \
   "$DIR/src/main.m" \
   -o "$MACOS_DIR/ToolNAmp"
 
