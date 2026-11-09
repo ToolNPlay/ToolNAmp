@@ -624,7 +624,7 @@
             NSArray *pending = self.pendingLaunchURLs;
             self.pendingLaunchURLs = nil;
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                [self handleDroppedURLs:pending];
+                [self handleInitialLaunchURLs:pending];
             });
         }
         return;
@@ -902,6 +902,28 @@
     }
 }
 
+- (void)handleInitialLaunchURLs:(NSArray<NSURL *> *)urls {
+    NSMutableArray<NSURL *> *audioUrls = [NSMutableArray array];
+    for (NSURL *url in urls) {
+        NSNumber *isDir = nil;
+        [url getResourceValue:&isDir forKey:NSURLIsDirectoryKey error:nil];
+        if ([isDir boolValue]) {
+            [self scanAndCollectFolder:url intoArray:audioUrls];
+        } else {
+            NSString *ext = [[url pathExtension] lowercaseString];
+            if ([ext isEqualToString:@"m3u"] || [ext isEqualToString:@"m3u8"]) {
+                [self importM3UFromURL:url];
+                return;
+            } else if ([@[@"mp3", @"wav", @"wave", @"flac", @"ogg", @"oga", @"m4a", @"aac", @"aiff", @"aif", @"aifc", @"webm", @"opus", @"wma", @"mid", @"midi"] containsObject:ext]) {
+                [audioUrls addObject:url];
+            }
+        }
+    }
+    if (audioUrls.count > 0) {
+        [self addTracksToPlaylistFromURLs:audioUrls replaceExisting:YES];
+    }
+}
+
 - (void)handleDroppedURLs:(NSArray<NSURL *> *)urls {
     if (!self.isWebReady) {
         self.pendingLaunchURLs = urls;
@@ -924,11 +946,15 @@
         }
     }
     if (audioUrls.count > 0) {
-        [self addTracksToPlaylistFromURLs:audioUrls];
+        [self addTracksToPlaylistFromURLs:audioUrls replaceExisting:NO];
     }
 }
 
 - (void)addTracksToPlaylistFromURLs:(NSArray<NSURL *> *)urls {
+    [self addTracksToPlaylistFromURLs:urls replaceExisting:NO];
+}
+
+- (void)addTracksToPlaylistFromURLs:(NSArray<NSURL *> *)urls replaceExisting:(BOOL)replaceExisting {
     if (urls.count == 0) return;
     
     NSMutableArray *trackDicts = [NSMutableArray array];
@@ -973,7 +999,7 @@
     escaped = [escaped stringByReplacingOccurrencesOfString:@"\n" withString:@"\\n"];
     escaped = [escaped stringByReplacingOccurrencesOfString:@"\r" withString:@""];
     
-    NSString *js = [NSString stringWithFormat:@"(window.toolNAmp || window.macAmp) && (window.toolNAmp || window.macAmp).addTracksBatchFromNative('%@');", escaped];
+    NSString *js = [NSString stringWithFormat:@"(window.toolNAmp || window.macAmp) && (window.toolNAmp || window.macAmp).addTracksBatchFromNative('%@', %@);", escaped, replaceExisting ? @"true" : @"false"];
     dispatch_async(dispatch_get_main_queue(), ^{
         [self.webView evaluateJavaScript:js completionHandler:nil];
     });

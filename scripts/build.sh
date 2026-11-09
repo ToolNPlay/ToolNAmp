@@ -37,8 +37,8 @@ if [ -f "$DIR/assets/AppIcon.icns" ]; then
   cp "$DIR/assets/AppIcon.icns" "$RESOURCES_DIR/AppIcon.icns"
 fi
 
-# 4. Copy Web resources (HTML, CSS, JS, Demo Tracks)
-echo "Packaging Web Assets & Demo Tracks..."
+# 4. Copy Web resources (HTML, CSS, JS)
+echo "Packaging Web Assets..."
 cp -R "$DIR/src/web/"* "$RESOURCES_DIR/web/"
 
 # 5. Ad-Hoc Code Sign for macOS Gatekeeper

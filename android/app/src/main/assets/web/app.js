@@ -21,6 +21,9 @@ class ToolNAmpApp {
     this.isMiniMode = false;
     this.alwaysOnTop = false;
     
+    this.history = [];
+    this.activePlaylistTab = 'playlist';
+    this.currentVolume = 80;
     this.shuffleHistory = [];
     this.currentTrackMeta = null;
 
@@ -57,19 +60,74 @@ class ToolNAmpApp {
     });
   }
 
+  // --- SETTINGS (VOLUME & PAN) CONTROLLERS ---
+  setVolume(val, save = true) {
+    const num = Math.max(0, Math.min(100, parseInt(val, 10) || 0));
+    this.currentVolume = num;
+
+    const volSlider = document.getElementById('volumeSlider');
+    const miniVolSlider = document.getElementById('miniVolume');
+    const volVal = document.getElementById('volVal');
+    const volIcon = document.getElementById('volIcon');
+
+    if (volSlider) volSlider.value = num;
+    if (miniVolSlider) miniVolSlider.value = num;
+    if (volVal) volVal.textContent = `${num}%`;
+    if (volIcon) volIcon.textContent = num == 0 ? '🔇' : num < 40 ? '🔉' : '🔊';
+
+    if (window.audioEngine) {
+      window.audioEngine.setVolume(num);
+    }
+
+    try {
+      localStorage.setItem('toolnamp_volume', num.toString());
+    } catch (e) {}
+
+    if (save) {
+      this.saveCollection();
+    }
+  }
+
+  setPan(val, save = true) {
+    const v = Math.max(-100, Math.min(100, parseInt(val, 10) || 0));
+    const panSlider = document.getElementById('panSlider');
+    const panVal = document.getElementById('panVal');
+
+    if (panSlider) panSlider.value = v;
+    if (panVal) panVal.textContent = v === 0 ? 'C' : v < 0 ? `L${Math.abs(v)}` : `R${v}`;
+
+    if (window.audioEngine) {
+      window.audioEngine.setPan(v);
+    }
+
+    try {
+      localStorage.setItem('toolnamp_pan', v.toString());
+    } catch (e) {}
+
+    if (save) {
+      this.saveCollection();
+    }
+  }
+
   // --- COLLECTION PERSISTENCE & HISTORY SYSTEM ---
   saveCollection() {
     try {
+      const volSlider = document.getElementById('volumeSlider');
+      const panSlider = document.getElementById('panSlider');
+      const currentVol = volSlider ? parseInt(volSlider.value, 10) : (this.currentVolume || 80);
+      const currentPan = panSlider ? parseInt(panSlider.value, 10) : 0;
+
       const state = {
         version: 1,
         savedAt: Date.now(),
         lastTrackIndex: this.currentIndex,
         lastTrackId: (this.currentIndex >= 0 && this.playlist[this.currentIndex]) ? this.playlist[this.currentIndex].id : null,
         lastSeekTime: (window.audioEngine && window.audioEngine.audioElement) ? window.audioEngine.audioElement.currentTime : 0,
-        volume: document.getElementById('volumeSlider') ? parseInt(document.getElementById('volumeSlider').value, 10) : 80,
-        pan: document.getElementById('panSlider') ? parseInt(document.getElementById('panSlider').value, 10) : 0,
+        volume: currentVol,
+        pan: currentPan,
         shuffle: this.shuffle,
         repeatMode: this.repeatMode,
+        activePlaylistTab: this.activePlaylistTab || 'playlist',
         tracks: this.playlist.filter(t => !t.url.startsWith('blob:')).map(t => ({
           id: t.id,
           title: t.title,
@@ -81,11 +139,27 @@ class ToolNAmpApp {
           sampleRate: t.sampleRate,
           bitrate: t.bitrate,
           size: t.size
+        })),
+        history: this.history.filter(t => !t.url.startsWith('blob:')).slice(0, 100).map(t => ({
+          id: t.id,
+          title: t.title,
+          artist: t.artist,
+          album: t.album,
+          duration: t.duration,
+          url: t.url,
+          format: t.format,
+          sampleRate: t.sampleRate,
+          bitrate: t.bitrate,
+          size: t.size,
+          playedAt: t.playedAt || Date.now()
         }))
       };
 
       const jsonStr = JSON.stringify(state);
       localStorage.setItem('toolnamp_collection_state', jsonStr);
+      localStorage.setItem('toolnamp_volume', currentVol.toString());
+      localStorage.setItem('toolnamp_pan', currentPan.toString());
+      localStorage.setItem('toolnamp_history', JSON.stringify(state.history));
 
       // Also persist to native application storage collection.json
       this.sendNative('saveCollection', { data: jsonStr });
@@ -99,10 +173,15 @@ class ToolNAmpApp {
       const raw = localStorage.getItem('toolnamp_collection_state') || localStorage.getItem('macamp_collection_state');
       if (raw) {
         const state = JSON.parse(raw);
-        if (state && Array.isArray(state.tracks) && state.tracks.length > 0) {
+        if (state) {
           this.applyCollectionState(state);
           return true;
         }
+      } else {
+        const savedVol = localStorage.getItem('toolnamp_volume');
+        if (savedVol !== null) this.setVolume(parseInt(savedVol, 10), false);
+        const savedPan = localStorage.getItem('toolnamp_pan');
+        if (savedPan !== null) this.setPan(parseInt(savedPan, 10), false);
       }
     } catch (e) {
       console.warn("Failed to load collection from localStorage:", e);
@@ -111,11 +190,30 @@ class ToolNAmpApp {
   }
 
   applyCollectionState(state) {
-    if (!state || !Array.isArray(state.tracks)) return;
+    if (!state) return;
 
-    // Filter valid offline tracks (macamp-audio://, toolnamp-audio://, or relative audio files)
-    this.playlist = state.tracks.filter(t => t && t.url && !t.url.startsWith('blob:') && !t.id?.startsWith('yt-') && !t.url.includes('googlevideo.com') && !t.url.startsWith('http://') && !t.url.startsWith('https://'));
-    
+    // 1. Restore Volume & Pan settings
+    const savedVol = (typeof state.volume === 'number' && !isNaN(state.volume))
+      ? state.volume
+      : (localStorage.getItem('toolnamp_volume') ? parseInt(localStorage.getItem('toolnamp_volume'), 10) : 80);
+    this.setVolume(savedVol, false);
+
+    const savedPan = (typeof state.pan === 'number' && !isNaN(state.pan))
+      ? state.pan
+      : (localStorage.getItem('toolnamp_pan') ? parseInt(localStorage.getItem('toolnamp_pan'), 10) : 0);
+    this.setPan(savedPan, false);
+
+    // 2. Restore History
+    if (Array.isArray(state.history)) {
+      this.history = state.history.filter(t => t && t.url && !t.url.startsWith('blob:'));
+    } else {
+      try {
+        const histRaw = localStorage.getItem('toolnamp_history');
+        if (histRaw) this.history = JSON.parse(histRaw) || [];
+      } catch (e) {}
+    }
+
+    // 3. Restore Shuffle / Repeat
     if (typeof state.shuffle === 'boolean') {
       this.shuffle = state.shuffle;
       document.getElementById('btnShuffle')?.classList.toggle('active', this.shuffle);
@@ -126,10 +224,12 @@ class ToolNAmpApp {
       if (repBtn) repBtn.textContent = `REP: ${this.repeatMode.toUpperCase()}`;
     }
 
-    this.updatePlaylistUI();
-    this.probeMissingDurations();
+    // 4. Restore Playlist tracks
+    if (Array.isArray(state.tracks) && state.tracks.length > 0) {
+      this.playlist = state.tracks.filter(t => t && t.url && !t.url.startsWith('blob:') && !t.id?.startsWith('yt-') && !t.url.includes('googlevideo.com') && !t.url.startsWith('http://') && !t.url.startsWith('https://'));
+      this.updatePlaylistUI();
+      this.probeMissingDurations();
 
-    if (this.playlist.length > 0) {
       let targetIndex = 0;
       if (typeof state.lastTrackIndex === 'number' && state.lastTrackIndex >= 0 && state.lastTrackIndex < this.playlist.length) {
         targetIndex = state.lastTrackIndex;
@@ -138,10 +238,8 @@ class ToolNAmpApp {
         if (found !== -1) targetIndex = found;
       }
 
-      // Select track ready to play from history WITHOUT auto-starting playback
       this.selectTrack(targetIndex, false);
 
-      // Restore seek time if saved
       if (state.lastSeekTime && state.lastSeekTime > 0) {
         setTimeout(() => {
           if (window.audioEngine) {
@@ -158,11 +256,216 @@ class ToolNAmpApp {
       }
     } else {
       this.currentIndex = -1;
-      const marquee = document.getElementById('trackMarquee');
-      if (marquee) {
-        marquee.textContent = `⚡ TOOLNAMP HIGH FIDELITY • READY TO ROCK • OPEN OR DROP AUDIO FILES ⚡`;
-      }
+      this.updatePlaylistUI();
     }
+
+    this.updateHistoryBadges();
+  }
+
+  // Record a track into History (deduplicated, latest at top)
+  recordToHistory(track, autoSave = true) {
+    if (!track || !track.title) return;
+    this.history = this.history.filter(t => t.url !== track.url && t.title !== track.title);
+    this.history.unshift({
+      id: `hist-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
+      title: track.title,
+      artist: track.artist || 'Local Music',
+      album: track.album || 'Local Library',
+      duration: track.duration || 0,
+      url: track.url,
+      format: track.format || 'AUDIO',
+      sampleRate: track.sampleRate || '44.1 kHz',
+      bitrate: track.bitrate || '320 kbps',
+      size: track.size || 'Local File',
+      playedAt: Date.now()
+    });
+    if (this.history.length > 150) {
+      this.history = this.history.slice(0, 150);
+    }
+    this.updateHistoryBadges();
+    if (this.activePlaylistTab === 'history') {
+      this.renderHistoryUI();
+    }
+    if (autoSave) {
+      this.saveCollection();
+    }
+  }
+
+  // --- PLAYLIST VS HISTORY TAB SWITCHING ---
+  switchPlaylistTab(tab) {
+    this.activePlaylistTab = tab;
+    const tabPl = document.getElementById('tabCurrentPlaylist');
+    const tabHist = document.getElementById('tabPlayHistory');
+    const plActions = document.getElementById('plActionButtons');
+    const histActions = document.getElementById('histActionButtons');
+
+    if (tab === 'history') {
+      tabHist?.classList.add('active');
+      tabPl?.classList.remove('active');
+      if (plActions) plActions.style.display = 'none';
+      if (histActions) histActions.style.display = 'flex';
+      this.renderHistoryUI();
+    } else {
+      tabPl?.classList.add('active');
+      tabHist?.classList.remove('active');
+      if (plActions) plActions.style.display = 'flex';
+      if (histActions) histActions.style.display = 'none';
+      this.updatePlaylistUI();
+    }
+    this.updateHistoryBadges();
+  }
+
+  updateHistoryBadges() {
+    const plCount = document.getElementById('badgePlCount');
+    const histCount = document.getElementById('badgeHistCount');
+    if (plCount) plCount.textContent = this.playlist.length;
+    if (histCount) histCount.textContent = this.history.length;
+  }
+
+  renderHistoryUI() {
+    const tbody = document.getElementById('playlistBody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    if (this.history.length === 0) {
+      const emptyTr = document.createElement('tr');
+      emptyTr.innerHTML = `
+        <td colspan="6" class="playlist-empty-msg">
+          <div class="empty-pl-wrap">
+            <span class="empty-icon">📜</span>
+            <span class="empty-title">History is empty</span>
+            <span class="empty-sub">Songs you play will automatically appear here for quick access.</span>
+          </div>
+        </td>
+      `;
+      tbody.appendChild(emptyTr);
+      this.updateHistoryStats();
+      return;
+    }
+
+    this.history.forEach((track, index) => {
+      const tr = document.createElement('tr');
+      tr.className = 'playlist-row history-row';
+      tr.dataset.historyIndex = index;
+
+      const tdStatus = document.createElement('td');
+      tdStatus.className = 'td-status';
+      tdStatus.textContent = '📜';
+
+      const tdNum = document.createElement('td');
+      tdNum.className = 'td-num';
+      tdNum.textContent = `${index + 1}.`;
+
+      const tdTitle = document.createElement('td');
+      tdTitle.className = 'td-title';
+      tdTitle.textContent = track.title;
+      tdTitle.title = track.title;
+
+      const tdArtist = document.createElement('td');
+      tdArtist.className = 'td-artist';
+      tdArtist.textContent = track.artist;
+
+      const tdTime = document.createElement('td');
+      tdTime.className = 'td-time';
+      tdTime.textContent = this.formatTime(track.duration, false);
+
+      const tdDel = document.createElement('td');
+      tdDel.className = 'td-del';
+      const btnPlay = document.createElement('button');
+      btnPlay.className = 'btn-row-del';
+      btnPlay.innerHTML = '▶';
+      btnPlay.title = 'Play song now';
+      btnPlay.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.playHistoryTrack(index);
+      });
+      tdDel.appendChild(btnPlay);
+
+      tr.appendChild(tdStatus);
+      tr.appendChild(tdNum);
+      tr.appendChild(tdTitle);
+      tr.appendChild(tdArtist);
+      tr.appendChild(tdTime);
+      tr.appendChild(tdDel);
+
+      tr.addEventListener('click', () => {
+        document.querySelectorAll('.playlist-row').forEach(r => r.classList.remove('selected'));
+        tr.classList.add('selected');
+      });
+
+      tr.addEventListener('dblclick', () => {
+        this.playHistoryTrack(index);
+      });
+
+      tbody.appendChild(tr);
+    });
+
+    this.updateHistoryStats();
+  }
+
+  updateHistoryStats() {
+    const countLabel = document.getElementById('plStatsCount');
+    const durLabel = document.getElementById('plStatsDuration');
+    if (countLabel) countLabel.textContent = `${this.history.length} in history`;
+    let totalSec = 0;
+    this.history.forEach(t => totalSec += (t.duration || 0));
+    if (durLabel) durLabel.textContent = `${this.formatTime(totalSec, true)} total time`;
+  }
+
+  playHistoryTrack(historyIndex) {
+    const track = this.history[historyIndex];
+    if (!track) return;
+
+    let plIdx = this.playlist.findIndex(t => t.url === track.url || (t.title === track.title && t.artist === track.artist));
+    if (plIdx === -1) {
+      this.playlist.push({ ...track, id: `track-${Date.now()}-${Math.random().toString(36).substr(2, 6)}` });
+      plIdx = this.playlist.length - 1;
+    }
+
+    this.switchPlaylistTab('playlist');
+    this.selectTrack(plIdx, true);
+    this.saveCollection();
+  }
+
+  playSelectedHistoryTrack() {
+    const selRow = document.querySelector('.history-row.selected');
+    if (selRow && selRow.dataset.historyIndex !== undefined) {
+      const idx = parseInt(selRow.dataset.historyIndex, 10);
+      this.playHistoryTrack(idx);
+    } else if (this.history.length > 0) {
+      this.playHistoryTrack(0);
+    }
+  }
+
+  addAllHistoryToPlaylist() {
+    if (this.history.length === 0) return;
+    let addedCount = 0;
+    this.history.forEach(h => {
+      const exists = this.playlist.some(p => p.url === h.url || (p.title === h.title && p.artist === h.artist));
+      if (!exists) {
+        this.playlist.push({ ...h, id: `track-${Date.now()}-${Math.random().toString(36).substr(2, 6)}` });
+        addedCount++;
+      }
+    });
+    this.switchPlaylistTab('playlist');
+    this.updatePlaylistUI();
+    this.saveCollection();
+    const marquee = document.getElementById('trackMarquee');
+    if (marquee) marquee.textContent = `⚡ ADDED ${addedCount} TRACKS FROM HISTORY TO PLAYLIST ⚡`;
+  }
+
+  clearHistory() {
+    this.history = [];
+    try {
+      localStorage.removeItem('toolnamp_history');
+    } catch (e) {}
+    this.saveCollection();
+    this.updateHistoryBadges();
+    if (this.activePlaylistTab === 'history') {
+      this.renderHistoryUI();
+    }
+    const marquee = document.getElementById('trackMarquee');
+    if (marquee) marquee.textContent = '⚡ LISTENING HISTORY CLEARED ⚡';
   }
 
   // Method invoked when native Cocoa delivers collection.json on launch
@@ -275,40 +578,27 @@ class ToolNAmpApp {
     // Volume & Pan Sliders
     const volSlider = document.getElementById('volumeSlider');
     const miniVolSlider = document.getElementById('miniVolume');
-    const volVal = document.getElementById('volVal');
     const volIcon = document.getElementById('volIcon');
 
-    const updateVol = (val) => {
-      if (volSlider) volSlider.value = val;
-      if (miniVolSlider) miniVolSlider.value = val;
-      if (volVal) volVal.textContent = `${val}%`;
-      if (window.audioEngine) window.audioEngine.setVolume(val);
-      if (volIcon) volIcon.textContent = val == 0 ? '🔇' : val < 40 ? '🔉' : '🔊';
-    };
-
-    volSlider?.addEventListener('input', (e) => updateVol(e.target.value));
-    miniVolSlider?.addEventListener('input', (e) => updateVol(e.target.value));
+    volSlider?.addEventListener('input', (e) => this.setVolume(e.target.value, false));
+    volSlider?.addEventListener('change', (e) => this.setVolume(e.target.value, true));
+    miniVolSlider?.addEventListener('input', (e) => this.setVolume(e.target.value, false));
+    miniVolSlider?.addEventListener('change', (e) => this.setVolume(e.target.value, true));
 
     volIcon?.addEventListener('click', () => {
       if (this.isMuted) {
-        updateVol(this.previousVolume || 80);
+        this.setVolume(this.previousVolume || 80, true);
         this.isMuted = false;
       } else {
-        this.previousVolume = parseInt(volSlider.value, 10);
-        updateVol(0);
+        this.previousVolume = parseInt(volSlider ? volSlider.value : 80, 10);
+        this.setVolume(0, true);
         this.isMuted = true;
       }
     });
 
     const panSlider = document.getElementById('panSlider');
-    const panVal = document.getElementById('panVal');
-    panSlider?.addEventListener('input', (e) => {
-      const v = parseInt(e.target.value, 10);
-      if (panVal) {
-        panVal.textContent = v === 0 ? 'C' : v < 0 ? `L${Math.abs(v)}` : `R${v}`;
-      }
-      if (window.audioEngine) window.audioEngine.setPan(v);
-    });
+    panSlider?.addEventListener('input', (e) => this.setPan(e.target.value, false));
+    panSlider?.addEventListener('change', (e) => this.setPan(e.target.value, true));
 
     // Module toggles (EQ / PL / FX / SHUF / REP)
     const btnEQ = document.getElementById('btnToggleEQ');
@@ -394,6 +684,13 @@ class ToolNAmpApp {
     document.getElementById('playlistSearch')?.addEventListener('input', (e) => {
       this.filterPlaylist(e.target.value.toLowerCase());
     });
+
+    // Playlist & History Tabs
+    document.getElementById('tabCurrentPlaylist')?.addEventListener('click', () => this.switchPlaylistTab('playlist'));
+    document.getElementById('tabPlayHistory')?.addEventListener('click', () => this.switchPlaylistTab('history'));
+    document.getElementById('btnHistPlaySelected')?.addEventListener('click', () => this.playSelectedHistoryTrack());
+    document.getElementById('btnHistAddAll')?.addEventListener('click', () => this.addAllHistoryToPlaylist());
+    document.getElementById('btnClearHistory')?.addEventListener('click', () => this.clearHistory());
 
     // Playlist Action Buttons
     document.getElementById('btnAutoScan')?.addEventListener('click', () => this.autoScanMusic());
@@ -558,6 +855,10 @@ class ToolNAmpApp {
           break;
         case 'p': // Toggle Playlist
           document.getElementById('btnTogglePL')?.click();
+          break;
+        case 'h': // Toggle Playlist / History Tab
+          e.preventDefault();
+          this.switchPlaylistTab(this.activePlaylistTab === 'history' ? 'playlist' : 'history');
           break;
         case 'u': // Check for updates
           this.checkForUpdates(true);
@@ -785,6 +1086,7 @@ class ToolNAmpApp {
     this.saveCollection();
 
     if (autoPlay) {
+      this.recordToHistory(track, false);
       this.play();
     }
   }
@@ -956,8 +1258,7 @@ class ToolNAmpApp {
     if (volSlider) {
       let cur = parseInt(volSlider.value, 10);
       cur = Math.max(0, Math.min(100, cur + delta));
-      volSlider.value = cur;
-      volSlider.dispatchEvent(new Event('input'));
+      this.setVolume(cur, true);
     }
   }
 
@@ -1097,6 +1398,7 @@ class ToolNAmpApp {
 
     if (countLabel) countLabel.textContent = `${totalTracks} track${totalTracks === 1 ? '' : 's'}`;
     if (durLabel) durLabel.textContent = `${this.formatTime(totalSec, true)} total time`;
+    this.updateHistoryBadges();
   }
 
   filterPlaylist(keyword) {
@@ -1153,10 +1455,13 @@ class ToolNAmpApp {
 
   clearPlaylist() {
     this.stop();
+    if (this.playlist.length > 0) {
+      this.playlist.forEach(t => this.recordToHistory(t, false));
+    }
     this.playlist = [];
     this.currentIndex = -1;
     this.updatePlaylistUI();
-    this.probeMissingDurations();
+    this.updateHistoryBadges();
     this.saveCollection();
   }
 
@@ -1229,16 +1534,25 @@ class ToolNAmpApp {
   }
 
   // Called from Cocoa native NSOpenPanel / Drag & Drop for batch of tracks
-  addTracksBatchFromNative(jsonStr) {
+  addTracksBatchFromNative(jsonStr, replaceExisting = false) {
     try {
       const items = (typeof jsonStr === 'string') ? JSON.parse(jsonStr) : jsonStr;
       if (!Array.isArray(items) || items.length === 0) return;
 
+      if (replaceExisting) {
+        // Archive existing playlist into history before replacing
+        if (this.playlist.length > 0) {
+          this.playlist.forEach(t => this.recordToHistory(t, false));
+        }
+        this.playlist = [];
+        this.currentIndex = -1;
+      }
+
       const startIndex = this.playlist.length;
       items.forEach(item => {
         const itemDur = (typeof item.duration === 'number' && item.duration > 0) ? item.duration : 0;
-        this.playlist.push({
-          id: `track-${Date.now()}-${Math.random()}`,
+        const newTrack = {
+          id: `track-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
           title: item.title || 'Unknown Title',
           artist: item.artist || 'Local Artist',
           album: 'Local Library',
@@ -1248,21 +1562,24 @@ class ToolNAmpApp {
           sampleRate: '44.1 kHz',
           bitrate: '320 kbps',
           size: 'Local File'
-        });
+        };
+        this.playlist.push(newTrack);
+        this.recordToHistory(newTrack, false);
       });
 
+      this.activePlaylistTab = 'playlist';
+      this.switchPlaylistTab('playlist');
       this.updatePlaylistUI();
-    this.probeMissingDurations();
       this.probeMissingDurations();
-      // Auto-play the first added track if nothing was playing
-      if (!this.isPlaying) {
-        this.selectTrack(startIndex, true);
-      } else {
-        this.saveCollection();
-      }
+      this.selectTrack(startIndex, true);
+      this.saveCollection();
     } catch (e) {
       console.warn("Failed to add tracks batch:", e);
     }
+  }
+
+  addTracksBatch(items, replaceExisting = false) {
+    this.addTracksBatchFromNative(items, replaceExisting);
   }
 
   getAudioDuration(url) {

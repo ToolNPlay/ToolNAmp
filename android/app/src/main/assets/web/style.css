@@ -2052,6 +2052,64 @@ body {
   box-shadow: 0 0 8px var(--accent-highlight, #38bdf8);
 }
 
+/* Playlist / History Tabs */
+.pl-tabs {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 2px;
+  gap: 3px;
+}
+
+.pl-tab-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted, rgba(255, 255, 255, 0.65));
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  padding: 3px 9px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.pl-tab-btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.pl-tab-btn.active {
+  background: var(--accent-gradient, linear-gradient(135deg, #6366f1, #a855f7));
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.35);
+}
+
+.pl-badge {
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 10px;
+  padding: 1px 5px;
+  font-size: 8.5px;
+  font-weight: 600;
+}
+
+.pl-btn.btn-danger {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+}
+
+.pl-btn.btn-danger:hover {
+  background: rgba(239, 68, 68, 0.4);
+  border-color: #ef4444;
+  color: #fff;
+}
+
 /* --- 10-BAND EQUALIZER --- */
 .eq-section {
   display: flex;

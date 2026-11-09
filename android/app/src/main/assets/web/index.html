@@ -440,7 +440,10 @@
         <div class="module-header">
           <div class="module-title">
             <span class="dot-indicator"></span>
-            <span>PLAYLIST MANAGER</span>
+            <div class="pl-tabs">
+              <button id="tabCurrentPlaylist" class="pl-tab-btn active" type="button" title="View Current Active Playlist">🎵 PLAYLIST <span id="badgePlCount" class="pl-badge">0</span></button>
+              <button id="tabPlayHistory" class="pl-tab-btn" type="button" title="View Listening History & Past Played Tracks">📜 HISTORY <span id="badgeHistCount" class="pl-badge">0</span></button>
+            </div>
           </div>
 
           <!-- Search / Filter box -->
@@ -478,12 +481,18 @@
 
         <!-- Playlist Action Bar -->
         <div class="playlist-action-bar">
-          <div class="action-buttons-left">
+          <div id="plActionButtons" class="action-buttons-left">
             <button id="btnAutoScan" class="pl-btn scan-btn" title="Auto-Scan Music Library (Folders & Device)">🔍 SCAN</button>
             <button id="btnAddFiles" class="pl-btn" title="Add Audio Files">+ FILE</button>
             <button id="btnAddFolder" class="pl-btn" title="Add Whole Folder of Music">+ FOLDER</button>
             <button id="btnRemoveSelected" class="pl-btn" title="Remove Selected Song">- REMOVE</button>
             <button id="btnClearPlaylist" class="pl-btn" title="Clear Entire Playlist">CLEAR</button>
+          </div>
+
+          <div id="histActionButtons" class="action-buttons-left" style="display: none;">
+            <button id="btnHistPlaySelected" class="pl-btn scan-btn" title="Play Selected History Song">▶ PLAY</button>
+            <button id="btnHistAddAll" class="pl-btn" title="Add All History Songs to Current Playlist">+ ADD ALL TO PLAYLIST</button>
+            <button id="btnClearHistory" class="pl-btn btn-danger" title="Clear Listening History">🗑️ CLEAR HISTORY</button>
           </div>
 
           <div class="action-buttons-right">

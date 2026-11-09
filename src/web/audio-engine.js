@@ -113,7 +113,10 @@ class MacAmpAudioEngine {
 
       // 6. Master Volume Gain
       this.masterGainNode = this.audioCtx.createGain();
-      this.masterGainNode.gain.value = 0.8;
+      const initialVol = (window.toolNAmp && typeof window.toolNAmp.currentVolume === 'number')
+        ? window.toolNAmp.currentVolume
+        : (localStorage.getItem('toolnamp_volume') ? parseInt(localStorage.getItem('toolnamp_volume'), 10) : 80);
+      this.masterGainNode.gain.value = Math.max(0, Math.min(100, initialVol)) / 100.0;
 
       // 7. Analyser Node (FFT for Spectrum & Waveform)
       this.analyserNode = this.audioCtx.createAnalyser();
