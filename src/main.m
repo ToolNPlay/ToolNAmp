@@ -401,7 +401,7 @@
 
 - (void)showAbout {
     NSAlert *alert = [[NSAlert alloc] init];
-    [alert setMessageText:@"⚡ ToolNAmp v1.1.0"];
+    [alert setMessageText:@"⚡ ToolNAmp v1.1.1"];
     [alert setInformativeText:@"The Ultimate Retro High-Fidelity Music Player\n\n"
                               @"• Developed by: ToolNPlay.com\n"
                               @"• Developers: Pardeep Kumar & Harsh Suman\n\n"
@@ -758,6 +758,12 @@
 }
 
 - (void)webView:(WKWebView *)webView didFinishNavigation:(WKNavigation *)navigation {
+    NSString *bundleVer = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"] ?: @"1.1.1";
+    NSString *verJs = [NSString stringWithFormat:@"if (window.toolNAmp) { window.toolNAmp.version = 'v%@'; }", bundleVer];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self.webView evaluateJavaScript:verJs completionHandler:nil];
+    });
+
     NSString *path = [self collectionFilePath];
     if ([[NSFileManager defaultManager] fileExistsAtPath:path]) {
         NSString *content = [NSString stringWithContentsOfFile:path encoding:NSUTF8StringEncoding error:nil];

@@ -1,7 +1,7 @@
 # ⚡ ToolNAmp — High-Fidelity Retro Music Player
 
 [![Platform](https://img.shields.io/badge/Platform-macOS%20%7C%20Windows%20%7C%20Android-blue.svg)](https://toolnplay.com)
-[![Release](https://img.shields.io/badge/Release-v1.1.0-emerald.svg)](https://toolnplay.com)
+[![Release](https://img.shields.io/badge/Release-v1.1.1-emerald.svg)](https://toolnplay.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Audio](https://img.shields.io/badge/Audio-WebAudio%20%2B%20DSP%20Engine-cyan.svg)](https://toolnplay.com)
 

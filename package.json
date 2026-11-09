@@ -1,6 +1,6 @@
 {
   "name": "toolnamp",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "High-Fidelity Winamp-Inspired Retro Music Player for macOS, Windows, and Android",
   "main": "electron/main.js",
   "homepage": "https://ToolNPlay.com",

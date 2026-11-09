@@ -7,7 +7,7 @@
 
 class ToolNAmpApp {
   constructor() {
-    this.version = 'v1.1.0';
+    this.version = 'v1.1.1';
     this.playlist = [];
     this.currentIndex = -1;
     this.isPlaying = false;
@@ -2010,10 +2010,18 @@ class ToolNAmpApp {
   // --- EXTERNAL LINK OPENER ---
   openExternal(url) {
     if (!url) return;
-    this.sendNative('openExternal', { url: url });
-    try {
-      window.open(url, '_blank');
-    } catch (e) {}
+    const hasNative = !!((window.webkit && window.webkit.messageHandlers && (window.webkit.messageHandlers.toolnamp || window.webkit.messageHandlers.macamp)) ||
+                         (window.chrome && window.chrome.webview) ||
+                         window.AndroidBridge);
+    if (hasNative) {
+      this.sendNative('openExternal', { url: url });
+    } else {
+      try {
+        window.open(url, '_blank');
+      } catch (e) {
+        window.location.href = url;
+      }
+    }
   }
 
   detectPlatform() {
@@ -2155,11 +2163,15 @@ class ToolNAmpApp {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       const latestTag = data.tag_name || data.name || '';
-      const currentTag = this.version || 'v1.1.0';
+      const currentTag = this.version || 'v1.1.1';
 
       const isNewer = latestTag && latestTag !== currentTag && this.compareVersions(latestTag, currentTag) > 0;
 
       if (isNewer) {
+        if (!manual && sessionStorage.getItem('update_dismissed_' + latestTag) === '1') {
+          return;
+        }
+        this.pendingUpdateTag = latestTag;
         const platform = this.detectPlatform();
         let targetDownloadUrl = data.html_url || 'https://github.com/ToolNPlay/ToolNAmp/releases/latest';
         let btnText = `📥 Download Update (${latestTag})`;
@@ -2277,6 +2289,12 @@ class ToolNAmpApp {
     if (modal) modal.classList.add('hidden');
     const secBox = document.getElementById('updateSecondaryLinkBox');
     if (secBox) secBox.style.display = 'none';
+
+    if (this.pendingUpdateTag) {
+      try {
+        sessionStorage.setItem('update_dismissed_' + this.pendingUpdateTag, '1');
+      } catch (e) {}
+    }
   }
 
   // --- WINDOW SHADE / MINI MODE ---
