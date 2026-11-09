@@ -82,8 +82,15 @@ EOF
 echo "Creating native macOS compressed DMG (UDZO format)..."
 hdiutil create -volname "ToolNAmp" -srcfolder "$STAGE_DIR" -ov -format UDZO "$DMG_PATH"
 
-# Cleanup staging files
+# Cleanup staging files and intermediate unpacked app bundle
+# so macOS Spotlight & LaunchServices only register /Applications/ToolNAmp.app
 rm -rf "$STAGE_DIR"
+if [ -d "$APP_DIR" ]; then
+  if [ -x "/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister" ]; then
+    /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -u "$APP_DIR" 2>/dev/null || true
+  fi
+  rm -rf "$APP_DIR"
+fi
 
 echo "=== DMG Build Successful! ==="
 echo "DMG File: $DMG_PATH"
