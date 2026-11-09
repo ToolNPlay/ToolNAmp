@@ -30,7 +30,7 @@ ln -s /Applications "$STAGE_DIR/Applications"
 # Add README note inside DMG
 cat << 'EOF' > "$STAGE_DIR/How to Install.txt"
 ⚡ TOOLNAMP - High Fidelity Retro Music Player ⚡
-Developed by ToolNPlay.com • Authors: Pardeep Kumar & Harsh Suman
+Developed by ToolNPlay.com • Developers: Pardeep Kumar & Harsh Suman
 
 INSTALLATION:
 Simply drag "ToolNAmp.app" into the "Applications" folder shortcut!

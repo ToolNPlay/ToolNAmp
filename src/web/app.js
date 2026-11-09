@@ -665,7 +665,7 @@ class ToolNAmpApp {
   }
 
   isAudioFile(filename) {
-    return /\.(mp3|wav|ogg|m4a|flac|aac|aiff|opus|webm)$/i.test(filename);
+    return /\.(mp3|wav|wave|ogg|oga|m4a|flac|aac|aiff|aif|aifc|opus|webm|wma|mid|midi)$/i.test(filename);
   }
 
   // Audio element events (Time update, track ended, etc.)

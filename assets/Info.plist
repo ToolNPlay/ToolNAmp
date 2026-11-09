@@ -38,15 +38,78 @@
             <key>CFBundleTypeRole</key>
             <string>Viewer</string>
             <key>LSHandlerRank</key>
-            <string>Alternate</string>
+            <string>Default</string>
+            <key>CFBundleTypeExtensions</key>
+            <array>
+                <string>wav</string>
+                <string>wave</string>
+                <string>mp3</string>
+                <string>flac</string>
+                <string>m4a</string>
+                <string>aac</string>
+                <string>ogg</string>
+                <string>oga</string>
+                <string>opus</string>
+                <string>aiff</string>
+                <string>aif</string>
+                <string>aifc</string>
+                <string>webm</string>
+                <string>wma</string>
+                <string>mid</string>
+                <string>midi</string>
+            </array>
+            <key>CFBundleTypeMIMETypes</key>
+            <array>
+                <string>audio/wav</string>
+                <string>audio/x-wav</string>
+                <string>audio/wave</string>
+                <string>audio/mpeg</string>
+                <string>audio/mp3</string>
+                <string>audio/flac</string>
+                <string>audio/x-flac</string>
+                <string>audio/mp4</string>
+                <string>audio/x-m4a</string>
+                <string>audio/aac</string>
+                <string>audio/ogg</string>
+                <string>audio/x-aiff</string>
+                <string>audio/webm</string>
+            </array>
             <key>LSItemContentTypes</key>
             <array>
                 <string>public.audio</string>
+                <string>com.microsoft.waveform-audio</string>
                 <string>public.mp3</string>
                 <string>com.apple.m4a-audio</string>
                 <string>public.aifc-audio</string>
                 <string>public.aiff-audio</string>
-                <string>com.microsoft.waveform-audio</string>
+                <string>org.xiph.flac</string>
+                <string>org.xiph.ogg-audio</string>
+                <string>public.audiovisual-content</string>
+            </array>
+        </dict>
+        <dict>
+            <key>CFBundleTypeName</key>
+            <string>Audio Playlist</string>
+            <key>CFBundleTypeRole</key>
+            <string>Viewer</string>
+            <key>LSHandlerRank</key>
+            <string>Default</string>
+            <key>CFBundleTypeExtensions</key>
+            <array>
+                <string>m3u</string>
+                <string>m3u8</string>
+                <string>pls</string>
+            </array>
+            <key>CFBundleTypeMIMETypes</key>
+            <array>
+                <string>audio/x-mpegurl</string>
+                <string>application/x-mpegurl</string>
+                <string>audio/mpegurl</string>
+            </array>
+            <key>LSItemContentTypes</key>
+            <array>
+                <string>public.playlist</string>
+                <string>public.m3u-playlist</string>
             </array>
         </dict>
     </array>

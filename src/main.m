@@ -17,6 +17,16 @@
         NSString *decoded = [path stringByRemovingPercentEncoding];
         if (decoded && [[NSFileManager defaultManager] fileExistsAtPath:decoded]) {
             path = decoded;
+        } else if ([url host] && ![[url host] isEqualToString:@"local"]) {
+            NSString *hostPath = [NSString stringWithFormat:@"/%@%@", [url host], path];
+            if ([[NSFileManager defaultManager] fileExistsAtPath:hostPath]) {
+                path = hostPath;
+            } else {
+                NSString *decodedHost = [hostPath stringByRemovingPercentEncoding];
+                if (decodedHost && [[NSFileManager defaultManager] fileExistsAtPath:decodedHost]) {
+                    path = decodedHost;
+                }
+            }
         }
     }
     
@@ -46,11 +56,11 @@
     
     NSString *ext = [[path pathExtension] lowercaseString];
     NSString *mimeType = @"audio/mpeg";
-    if ([ext isEqualToString:@"wav"]) mimeType = @"audio/wav";
+    if ([ext isEqualToString:@"wav"] || [ext isEqualToString:@"wave"]) mimeType = @"audio/wav";
     else if ([ext isEqualToString:@"flac"]) mimeType = @"audio/flac";
     else if ([ext isEqualToString:@"m4a"] || [ext isEqualToString:@"aac"]) mimeType = @"audio/mp4";
-    else if ([ext isEqualToString:@"ogg"]) mimeType = @"audio/ogg";
-    else if ([ext isEqualToString:@"aiff"] || [ext isEqualToString:@"aif"]) mimeType = @"audio/aiff";
+    else if ([ext isEqualToString:@"ogg"] || [ext isEqualToString:@"oga"] || [ext isEqualToString:@"opus"]) mimeType = @"audio/ogg";
+    else if ([ext isEqualToString:@"aiff"] || [ext isEqualToString:@"aif"] || [ext isEqualToString:@"aifc"]) mimeType = @"audio/aiff";
     else if ([ext isEqualToString:@"webm"]) mimeType = @"audio/webm";
     
     NSDictionary *fileAttrs = [[NSFileManager defaultManager] attributesOfItemAtPath:path error:nil];
@@ -528,7 +538,65 @@
     return YES;
 }
 
+- (BOOL)application:(NSApplication *)sender openFile:(NSString *)filename {
+    if (!filename || filename.length == 0) return NO;
+    NSURL *url = [NSURL fileURLWithPath:filename];
+    if (!url) return NO;
+    
+    if (!self.isWebReady) {
+        if (!self.pendingLaunchURLs) {
+            self.pendingLaunchURLs = @[url];
+        } else {
+            self.pendingLaunchURLs = [self.pendingLaunchURLs arrayByAddingObject:url];
+        }
+    } else {
+        [self handleDroppedURLs:@[url]];
+    }
+    return YES;
+}
+
+- (void)application:(NSApplication *)sender openFiles:(NSArray<NSString *> *)filenames {
+    if (filenames.count == 0) {
+        [sender replyToOpenOrPrint:NSApplicationDelegateReplySuccess];
+        return;
+    }
+    
+    NSMutableArray<NSURL *> *urls = [NSMutableArray arrayWithCapacity:filenames.count];
+    for (NSString *fn in filenames) {
+        NSURL *url = [NSURL fileURLWithPath:fn];
+        if (url) [urls addObject:url];
+    }
+    
+    if (urls.count > 0) {
+        if (!self.isWebReady) {
+            if (!self.pendingLaunchURLs) {
+                self.pendingLaunchURLs = urls;
+            } else {
+                self.pendingLaunchURLs = [self.pendingLaunchURLs arrayByAddingObjectsFromArray:urls];
+            }
+        } else {
+            [self handleDroppedURLs:urls];
+        }
+    }
+    [sender replyToOpenOrPrint:NSApplicationDelegateReplySuccess];
+}
+
+- (BOOL)application:(NSApplication *)application openURL:(NSURL *)url {
+    if (!url) return NO;
+    [self application:application openURLs:@[url]];
+    return YES;
+}
+
 - (void)application:(NSApplication *)application openURLs:(NSArray<NSURL *> *)urls {
+    if (urls.count == 0) return;
+    if (!self.isWebReady) {
+        if (!self.pendingLaunchURLs) {
+            self.pendingLaunchURLs = urls;
+        } else {
+            self.pendingLaunchURLs = [self.pendingLaunchURLs arrayByAddingObjectsFromArray:urls];
+        }
+        return;
+    }
     [self handleDroppedURLs:urls];
 }
 
@@ -705,7 +773,7 @@
     [panel setCanChooseFiles:YES];
     [panel setCanChooseDirectories:NO];
     [panel setAllowsMultipleSelection:YES];
-    [panel setAllowedFileTypes:@[@"mp3", @"wav", @"flac", @"ogg", @"m4a", @"aac", @"aiff", @"webm"]];
+    [panel setAllowedFileTypes:@[@"mp3", @"wav", @"wave", @"flac", @"ogg", @"oga", @"m4a", @"aac", @"aiff", @"aif", @"aifc", @"webm", @"opus", @"wma", @"mid", @"midi"]];
     [panel setMessage:@"Select audio files to add to ToolNAmp playlist:"];
     
     [panel beginSheetModalForWindow:self.window completionHandler:^(NSModalResponse result) {
@@ -826,7 +894,7 @@
             continue;
         }
         NSString *ext = [[url pathExtension] lowercaseString];
-        if ([@[@"mp3", @"wav", @"flac", @"ogg", @"m4a", @"aac", @"aiff", @"webm"] containsObject:ext]) {
+        if ([@[@"mp3", @"wav", @"wave", @"flac", @"ogg", @"oga", @"m4a", @"aac", @"aiff", @"aif", @"aifc", @"webm", @"opus", @"wma", @"mid", @"midi"] containsObject:ext]) {
             [outArray addObject:url];
         }
     }
@@ -848,7 +916,7 @@
             if ([ext isEqualToString:@"m3u"] || [ext isEqualToString:@"m3u8"]) {
                 [self importM3UFromURL:url];
                 return;
-            } else if ([@[@"mp3", @"wav", @"flac", @"ogg", @"m4a", @"aac", @"aiff", @"webm"] containsObject:ext]) {
+            } else if ([@[@"mp3", @"wav", @"wave", @"flac", @"ogg", @"oga", @"m4a", @"aac", @"aiff", @"aif", @"aifc", @"webm", @"opus", @"wma", @"mid", @"midi"] containsObject:ext]) {
                 [audioUrls addObject:url];
             }
         }
@@ -860,11 +928,6 @@
 
 - (void)addTracksToPlaylistFromURLs:(NSArray<NSURL *> *)urls {
     if (urls.count == 0) return;
-    
-    if (urls.count == 1) {
-        [self addTrackToPlaylistFromURL:urls.firstObject];
-        return;
-    }
     
     NSMutableArray *trackDicts = [NSMutableArray array];
     for (NSURL *url in urls) {
@@ -903,31 +966,9 @@
 }
 
 - (void)addTrackToPlaylistFromURL:(NSURL *)url {
-    NSString *filename = [url lastPathComponent];
-    NSString *cleanName = [filename stringByDeletingPathExtension];
-    NSString *artist = @"Local Music";
-    NSString *title = cleanName;
-    
-    if ([cleanName containsString:@" - "]) {
-        NSArray *parts = [cleanName componentsSeparatedByString:@" - "];
-        artist = parts[0];
-        title = [[parts subarrayWithRange:NSMakeRange(1, parts.count - 1)] componentsJoinedByString:@" - "];
+    if (url) {
+        [self addTracksToPlaylistFromURLs:@[url]];
     }
-    
-    // Convert to toolnamp-audio:// local streaming scheme
-    NSString *audioURL = [NSString stringWithFormat:@"toolnamp-audio://local%@", [url path]];
-    
-    NSString *escapedTitle = [title stringByReplacingOccurrencesOfString:@"'" withString:@"\\'"];
-    NSString *escapedArtist = [artist stringByReplacingOccurrencesOfString:@"'" withString:@"\\'"];
-    NSString *escapedPath = [audioURL stringByReplacingOccurrencesOfString:@"'" withString:@"\\'"];
-    
-    NSString *js = [NSString stringWithFormat:
-                    @"(window.toolNAmp || window.macAmp) && (window.toolNAmp || window.macAmp).addTrackFromNative('%@', '%@', '%@', '%@');",
-                    escapedTitle, escapedArtist, escapedPath, [[url pathExtension] uppercaseString]];
-                    
-    dispatch_async(dispatch_get_main_queue(), ^{
-        [self.webView evaluateJavaScript:js completionHandler:nil];
-    });
 }
 
 @end
